@@ -11,7 +11,7 @@ from selenium.common.exceptions import NoSuchElementException, ElementClickInter
 import os
 
 
-def write_jobs_to_txt(soup):
+def write_jobs_to_txt(soup, country):
     
     jobs = []
     parsing_dict = False
@@ -28,7 +28,7 @@ def write_jobs_to_txt(soup):
         if  '];' in line:
             break
         
-    with open('response_content.txt', 'w', encoding= 'utf-8') as f:
+    with open(f'{country}_salaries.txt', 'w', encoding= 'utf-8') as f:
         for line in jobs:
             f.write(line)
     print('Wrote jobs dictionary.')
@@ -40,12 +40,17 @@ def scrape_pages(country_url):
     driver.get(country_url)
     time.sleep(3)
     count = 0
-
+    
+    if 'netherlands' in country_url:
+        country = 'netherlands'
+    else:
+        country = 'berlin'
+    
     while True:
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         try:
-            write_jobs_to_txt(soup)
+            write_jobs_to_txt(soup, country)
             next_button = driver.find_element(By.XPATH, '//a[contains(@onclick, "gotoNextPage()")]')
             if next_button:
                 driver.execute_script("gotoNextPage()")
