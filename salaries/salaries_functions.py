@@ -10,6 +10,13 @@ from selenium.common.exceptions import NoSuchElementException, ElementClickInter
 import demjson3
 import os
 
+def create_country_file(country:str):
+    file = country + '_salaries.txt'
+    if not os.path.exists(file):
+        with open('netherlands_salaries.txt', 'w', encoding= 'utf-8') as f:
+            pass
+
+
 
 def write_jobs_to_txt(soup, country):
     
@@ -33,23 +40,25 @@ def write_jobs_to_txt(soup, country):
             f.write(line)
     print('Wrote jobs dictionary.')
             
+def get_country_or_city(country_url:str ) -> str:
+    if 'netherlands' in country_url:
+        country = 'netherlands'
+    else:
+        country = 'berlin'
+    return country  
             
-            
-def scrape_pages(country_url):
+def scrape_pages(country_url, max_pages_to_be_parsed = 107):
     driver = webdriver.Chrome()
     driver.get(country_url)
     time.sleep(3)
     count = 0
     
-    if 'netherlands' in country_url:
-        country = 'netherlands'
-    else:
-        country = 'berlin'
+    country = get_country_or_city(country_url)
     
     while True:
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
-        if count == 107:
+        if count == max_pages_to_be_parsed:
             break
         try:
             write_jobs_to_txt(soup, country)
@@ -80,3 +89,7 @@ def parse_to_csv(country):
         #json = json.loads(json_string) # would have worked with valid json key-value pairs
         file = pd.DataFrame(json_string, columns= columns)
         file.to_csv(f'dataframes/{country}_salaries.txt')
+        
+def get_page_filter_button_types_list():
+    arguments = ['locationFilterButton','jobFamilyFilterButton', 'seniorityFilterButton','roleTypeFilterButton','companyFilterButton']
+    return arguments
