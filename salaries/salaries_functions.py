@@ -10,6 +10,9 @@ from selenium.common.exceptions import NoSuchElementException, ElementClickInter
 import demjson3
 import os
 
+def get_netherlands_url():
+    return 'https://techpays.com/europe/netherlands'
+
 def create_country_file(country:str):
     file = country + '_salaries.txt'
     if not os.path.exists(file):
