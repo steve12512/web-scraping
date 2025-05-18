@@ -93,3 +93,5 @@ def parse_to_csv(country):
 def get_page_filter_button_types_list():
     arguments = ['locationFilterButton','jobFamilyFilterButton', 'seniorityFilterButton','roleTypeFilterButton','companyFilterButton']
     return arguments
+
+
