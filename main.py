@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from salaries import salaries_functions
 app = FastAPI()
-
+from database.crud_functions import write_dataframes_to_db
 
 @app.get('/')
 async def read_root():
@@ -17,3 +17,5 @@ async def post_root(item_id = 0,  q=2):
 async def put_root(quantity : int):
     #salaries_functions.create_country_file('/mock_directory/mock_file.txt')
     return {'quantity' : quantity}
+
+print('1')

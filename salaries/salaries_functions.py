@@ -42,7 +42,8 @@ def write_jobs_to_txt(soup, country):
         for line in jobs:
             f.write(line)
     print('Wrote jobs dictionary.')
-            
+
+
 def get_country_or_city(country_url:str ) -> str:
     if 'netherlands' in country_url:
         country = 'netherlands'
@@ -77,11 +78,15 @@ def scrape_pages(country_url, max_pages_to_be_parsed = 107):
     driver.close()
     
     
-def parse_to_csv(country):
+def parse_response_to_csv(country:str):
     
+    file = parse_response_to_dataframe(country)
+    file.to_csv(f'dataframes/{country}_salaries.txt')
+    
+def parse_response_to_dataframe(country:str) -> pd.DataFrame:
+
     columns = ['title', 'guid', 'specialization', 'city', 'companyName', 'totalCompensation', 'totalCompensationNumber', 'totalCompensationDetails', 'baseSalary', 'baseSalaryNumber', 'oldYearForData', 'otherContext']
     df = pd.DataFrame([], columns = columns)
-    
     
     with open(f'responses/{country}_salaries.txt', 'r', encoding = 'utf-8') as f:
         content = f.read()
@@ -89,12 +94,15 @@ def parse_to_csv(country):
         end = content.rfind(']') + 1
         javascript_string = content[start:end]
         json_string = demjson3.decode(javascript_string) # since our content is a js object and not valid json, we need to decode it like this, for its keys dont have literals in front of them
-        #json = json.loads(json_string) # would have worked with valid json key-value pairs
-        file = pd.DataFrame(json_string, columns= columns)
-        file.to_csv(f'dataframes/{country}_salaries.txt')
-        
+        df = pd.DataFrame(json_string, columns= columns)
+        return df
+
+    
 def get_page_filter_button_types_list():
     arguments = ['locationFilterButton','jobFamilyFilterButton', 'seniorityFilterButton','roleTypeFilterButton','companyFilterButton']
     return arguments
 
+def get_dataframe(country:str) -> pd.DataFrame:
+    file_path = f'dataframes/{country}_salaries.csv'
+    return pd.read_csv(file_path)
 
