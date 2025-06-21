@@ -104,5 +104,26 @@ def get_page_filter_button_types_list():
 
 def get_dataframe(country:str) -> pd.DataFrame:
     file_path = f'dataframes/{country}_salaries.csv'
-    return pd.read_csv(file_path)
+    df = pd.read_csv(file_path)
+    df_with_modified_columns = modify_df_column_types(df)
+    return df_with_modified_columns
 
+
+def modify_df_column_types(df):
+    if 'Unnamed: 0' in df.columns:
+        df = df.drop('Unnamed: 0', axis = 1)    
+    float_columns = [
+        'totalCompensation',
+        'totalCompensationNumber',
+        'baseSalary',
+        'baseSalaryNumber',
+        'oldYearForData'
+    ]
+    for col in float_columns:
+        df[col] = pd.to_numeric(df[col], errors = 'coerce')
+    str_cols = ['title', 'guid', 'specialization', 'city', 'companyName', 
+            'totalCompensationDetails', 'otherContext']
+    for col in str_cols:
+        df[col] = df[col].astype(str)
+    print('newa')
+    return df
