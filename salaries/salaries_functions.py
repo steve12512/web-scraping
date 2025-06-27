@@ -127,3 +127,15 @@ def modify_df_column_types(df):
         df[col] = df[col].astype(str)
     print('newa')
     return df
+
+
+def scrape_from_fyi(country:str):
+    pass
+
+
+
+
+def sign_in_levels_fyi(driver):
+    driver.get('https://www.levels.fyi/login?screen=signIn&from=navbar_buttons')
+    elements = driver.find(By.CLASS_NAME, 'button')
+    print(elements)
