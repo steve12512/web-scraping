@@ -9,6 +9,10 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 import demjson3
 import os
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+import os
+from dotenv import load_dotenv
 
 def get_netherlands_url():
     return 'https://techpays.com/europe/netherlands'
@@ -133,9 +137,40 @@ def scrape_from_fyi(country:str):
     pass
 
 
+    # <input aria-invalid="false" id="«r0»" placeholder="Email Address" class= type="text" value="" name="username">
+
+def accept_cookies(driver):
+    try:
+        # Wait for the cookie banner to appear
+        cookie_button = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH, '//button[contains(text(), "Accept All")]'))
+        )
+        cookie_button.click()
+        print("Cookies accepted.")
+    except:
+        print("No cookie banner appeared or already accepted.")
+
+
+def random_click(driver):
+    driver.execute_script("document.elementFromPoint(10, 10).click();")
 
 
 def sign_in_levels_fyi(driver):
     driver.get('https://www.levels.fyi/login?screen=signIn&from=navbar_buttons')
-    elements = driver.find(By.CLASS_NAME, 'button')
-    print(elements)
+    email_input = driver.find_element(By.XPATH, '//input[@placeholder="Email Address"]')
+    password_input = driver.find_element(By.CSS_SELECTOR,'input[placeholder="Password"]')
+
+    email = os.getenv('email')
+    password = os.getenv('password')
+    
+    email_input.send_keys(email)
+    password_input.send_keys(password)
+
+    sign_in_button = driver.find_element(By.XPATH, '//button[text()="Sign In"]')
+    pprint.pprint(sign_in_button)
+    accept_cookies(driver)
+    sign_in_button.click()
+    time.sleep(5)
+
+        
+        
