@@ -173,4 +173,29 @@ def sign_in_levels_fyi(driver):
     time.sleep(5)
 
         
-        
+def scrape_pages_for_lyi(driver):
+    count = 0
+    df = pd.DataFrame(columns=['company', 'level name', 'years of experience', 'total compensation'])
+    
+    while True:
+        html = driver.page_source
+        soup = BeautifulSoup(html, 'html.parser')
+        try:
+            df = scrape_lyi_page(df, soup)
+            go_to_next_lyi_page(driver)
+            count +=1
+            print(f'Clicked next button for the {count}th time')
+            
+        except (NoSuchElementException, ElementClickInterceptedException):
+            print("No more pages or cannot click next.")
+            # write_jobs_to_txt(soup, country)
+                
+    
+def go_to_next_lyi_page(driver):
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, '//button[normalize-space(text())="2"]'))
+    ).click()
+
+
+def scrape_ly_page(df, soup):
+    pass    
