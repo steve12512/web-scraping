@@ -197,11 +197,13 @@ def go_to_next_lyi_page(driver):
     ).click()
 
 
-def scrape_lyi_page(df, soup):
+def scrape_lyi_page(data, soup):
     
     rows = soup.find_all('tr', class_='salary-row_collapsedSalaryRow__o3k4j')
-
+    has_entries = False
+    
     for row in rows:
+        has_entries = True
         company_tag = row.find(class_='salary-row_companyName__8K8vS')  # Finds both <a> and <p>
         company = company_tag.get_text(strip=True) if company_tag else 'N/A'
 
@@ -215,11 +217,13 @@ def scrape_lyi_page(df, soup):
         total_compensation_tags = row.find_all('span', class_='css-b4wlzm')
         total_compensation = total_compensation_tags[2].get_text(strip=True) if total_compensation_tags else 'N/A'
 
-        df = df.concat({
-            'Company': company,
-            'Level': levels,
-            'Experience': yoe,
-            'Total Compensation': total_compensation,
-        }, ignore_index=True)
-        return df
     
+    if has_entries:
+        data.append({
+                'Company': company,
+                'Level': levels,
+                'Experience': yoe,
+                'Total Compensation': total_compensation
+            })
+        
+    return data
