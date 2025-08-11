@@ -213,9 +213,9 @@ def scrape_lyi_page(df, soup):
         yoe = yoe_tag.get_text(strip=True) if yoe_tag else 'N/A'
         
         total_compensation_tags = row.find_all('span', class_='css-b4wlzm')
-        total_compensation = total_compensation_tags[2].get_text(strip=True) if total_compensation_tag else 'N/A'
+        total_compensation = total_compensation_tags[2].get_text(strip=True) if total_compensation_tags else 'N/A'
 
-        df = df.append({
+        df = df.concat({
             'Company': company,
             'Level': levels,
             'Experience': yoe,
