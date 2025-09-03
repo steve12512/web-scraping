@@ -175,35 +175,59 @@ def sign_in_levels_fyi(driver):
         
 def scrape_pages_for_lyi(driver):
     count = 0
-    df = pd.DataFrame(columns=['company', 'level name', 'years of experience', 'total compensation'])
+    elements = list()
+    
+    is_at_second_page = True
     
     while True:
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         try:
-            df = scrape_lyi_page(df, soup)
-            go_to_next_lyi_page(driver)
+            elements_of_this_individual_page = scrape_lyi_page(soup)
+            
+            elements.append(elements_of_this_individual_page)
+            
+            go_to_next_lyi_page(driver, is_at_second_page)
+            
             count +=1
-            print(f'Clicked next button for the {count}th time')
+            if count == 100:
+                break
+            is_at_second_page = False
             
         except (NoSuchElementException, ElementClickInterceptedException):
             print("No more pages or cannot click next.")
-            # write_jobs_to_txt(soup, country)
-                
     
-def go_to_next_lyi_page(driver):
-    WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, '//button[normalize-space(text())="2"]'))
-    ).click()
+    return elements
+    
+def go_to_next_lyi_page(driver, is_at_second_page):
+    
+    if is_at_second_page:
+        
+        WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, '//button[normalize-space(text())="2"]'))
+        ).click()
+    else:
+        try:
+            next_button = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[3]/div[2]/div[2]/table/tfoot/tr/td/div/div[2]/div/button[7]')
+            next_button.click()
+        except NoSuchElementException:
+            print('skipped 1 page')
 
 
-def scrape_lyi_page(data, soup):
+
+
+
+
+
+
+
+
+def scrape_lyi_page(soup):
     
     rows = soup.find_all('tr', class_='salary-row_collapsedSalaryRow__o3k4j')
-    has_entries = False
+    elements_of_this_individual_page = []
     
     for row in rows:
-        has_entries = True
         company_tag = row.find(class_='salary-row_companyName__8K8vS')  # Finds both <a> and <p>
         company = company_tag.get_text(strip=True) if company_tag else 'N/A'
 
@@ -215,15 +239,24 @@ def scrape_lyi_page(data, soup):
         yoe = yoe_tag.get_text(strip=True) if yoe_tag else 'N/A'
         
         total_compensation_tags = row.find_all('span', class_='css-b4wlzm')
-        total_compensation = total_compensation_tags[2].get_text(strip=True) if total_compensation_tags else 'N/A'
-
-    
-    if has_entries:
-        data.append({
-                'Company': company,
-                'Level': levels,
-                'Experience': yoe,
-                'Total Compensation': total_compensation
-            })
+        total_compensation = total_compensation_tags[2].get_text(strip=True) if total_compensation_tags else 'N/A'    
+        elements_of_this_individual_page.append([company, levels, yoe, total_compensation])
         
-    return data
+    return elements_of_this_individual_page
+
+
+
+
+def parse_list_to_df(elements:list):
+    
+    df = pd.DataFrame(columns= ['Company', 'Level', 'Years of Experience', 'Total_Compensation'])
+    for row in elements:
+        for element in row:
+            name = element[0]
+            level = element[1]
+            yoe =   element[2]
+            comp = element[3]
+            
+            df.loc[len(df)] = [name, level, yoe, comp]
+            
+    return df
