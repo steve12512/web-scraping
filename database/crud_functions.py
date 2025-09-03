@@ -7,19 +7,20 @@ from models import Software_Engineer
 def write_dataframes_to_db(df : pd.DataFrame, model : Type[SQLModel]):
     '''
     '''
-        # Explicitly convert columns to float where needed
-    float_cols = [
-        'totalCompensation',
-        'totalCompensationNumber',
-        'baseSalary',
-        'baseSalaryNumber',
-        'oldYearForData'
-    ]
+    # the commented lines below will have to be deleted
+        
+    # float_cols = [
+    #     'totalCompensation',
+    #     'totalCompensationNumber',
+    #     'baseSalary',
+    #     'baseSalaryNumber',
+    #     'oldYearForData'
+    # ]
     
-    for col in float_cols:
-        if col in df.columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce')  # convert, set invalid parsing to NaN
-    print(df.dtypes)
+    # for col in float_cols:
+    #     if col in df.columns:
+    #         df[col] = pd.to_numeric(df[col], errors='coerce')  # convert, set invalid parsing to NaN
+    # print(df.dtypes)
     engine = create_engine('postgresql://postgres:postgres@localhost:5432/postgres')
     SQLModel.metadata.create_all(engine)
     
