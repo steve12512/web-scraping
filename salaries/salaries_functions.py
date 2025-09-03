@@ -260,3 +260,21 @@ def parse_list_to_df(elements:list):
             df.loc[len(df)] = [name, level, yoe, comp]
             
     return df
+
+
+
+
+def convert_cols_to_float(df):
+    float_cols = [
+        'totalCompensation',
+        'totalCompensationNumber',
+        'baseSalary',
+        'baseSalaryNumber',
+        'oldYearForData'
+    ]
+    
+    for col in float_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')  # convert, set invalid parsing to NaN
+    print(df.dtypes)
+    return df
