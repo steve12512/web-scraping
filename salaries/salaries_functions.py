@@ -133,12 +133,6 @@ def modify_df_column_types(df):
     return df
 
 
-def scrape_from_fyi(country:str):
-    pass
-
-
-    # <input aria-invalid="false" id="«r0»" placeholder="Email Address" class= type="text" value="" name="username">
-
 def accept_cookies(driver):
     try:
         # Wait for the cookie banner to appear
@@ -183,9 +177,12 @@ def scrape_pages_for_lyi(driver):
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
         try:
+            
             elements_of_this_individual_page = scrape_lyi_page(soup)
             
-            elements.append(elements_of_this_individual_page)
+            for listing in elements_of_this_individual_page:
+                print(listing)
+            elements.extend(elements_of_this_individual_page)
             
             go_to_next_lyi_page(driver, is_at_second_page)
             
@@ -199,7 +196,7 @@ def scrape_pages_for_lyi(driver):
     
     return elements
     
-def go_to_next_lyi_page(driver, is_at_second_page):
+def go_to_next_lyi_page(driver, is_at_second_page=None):
     
     if is_at_second_page:
         
@@ -228,7 +225,7 @@ def scrape_lyi_page(soup):
     elements_of_this_individual_page = []
     
     for row in rows:
-        company_tag = row.find(class_='salary-row_companyName__8K8vS')  # Finds both <a> and <p>
+        company_tag = row.find(class_='salary-row_companyName__8K8vS')  
         company = company_tag.get_text(strip=True) if company_tag else 'N/A'
 
         levels_tag = row.find(class_='salary-row_levelName__VZtUC')
@@ -249,16 +246,22 @@ def scrape_lyi_page(soup):
 
 def parse_list_to_df(elements:list):
     
-    df = pd.DataFrame(columns= ['Company', 'Level', 'Years of Experience', 'Total_Compensation'])
-    for row in elements:
-        for element in row:
-            name = element[0]
-            level = element[1]
-            yoe =   element[2]
-            comp = element[3]
-            
-            df.loc[len(df)] = [name, level, yoe, comp]
-            
+    rows = []
+        
+    try:
+        for row in elements:
+            if len(row) >= 4:
+                rows.append({
+                    'Company' : row[0],
+                    'Level' : row[1],
+                    'Years of Experience' : row[2],
+                    'Total Compensation' : row[3]
+                })
+                                                
+    except Exception as e:
+        print(e.with_traceback)
+    
+    df = pd.DataFrame(rows)
     return df
 
 
@@ -278,3 +281,15 @@ def convert_cols_to_float(df):
             df[col] = pd.to_numeric(df[col], errors='coerce')  # convert, set invalid parsing to NaN
     print(df.dtypes)
     return df
+
+
+def edit_compensation_column(df):
+    
+    if 'Total Compensation' in df.columns:
+        df['Salary'] = df['Total Compensation'].apply(lambda x: x.split('|')[0])
+        df['Salary'] = (df['Salary']
+                    .str.extract(r"([\d.,]+)")    
+                    .fillna("")                    
+                    [0]
+                    .str.replace(",", ".", regex=False) 
+                )

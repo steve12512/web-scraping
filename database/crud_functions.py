@@ -1,26 +1,16 @@
 from sqlmodel import Field, SQLModel, Session, create_engine, select
 import pandas as pd
 from typing import Type
-from models import Software_Engineer
+from models import Software_Engineer, Software_Engineer_Levels_Fyi
 
+
+from sqlmodel import Field, SQLModel, Session, create_engine, select
+from sqlalchemy import text
 
 def write_dataframes_to_db(df : pd.DataFrame, model : Type[SQLModel]):
     '''
     '''
-    # the commented lines below will have to be deleted
-        
-    # float_cols = [
-    #     'totalCompensation',
-    #     'totalCompensationNumber',
-    #     'baseSalary',
-    #     'baseSalaryNumber',
-    #     'oldYearForData'
-    # ]
-    
-    # for col in float_cols:
-    #     if col in df.columns:
-    #         df[col] = pd.to_numeric(df[col], errors='coerce')  # convert, set invalid parsing to NaN
-    # print(df.dtypes)
+    # the floats to numeric function was called here, before i put it outside of the function
     engine = create_engine('postgresql://postgres:postgres@localhost:5432/postgres')
     SQLModel.metadata.create_all(engine)
     
@@ -28,11 +18,26 @@ def write_dataframes_to_db(df : pd.DataFrame, model : Type[SQLModel]):
     for i, row in df.iterrows():
         model_entry = model(**row.to_dict())
         entries.append(model_entry)
-        
+    print(entries[0].__dict__)
+
     with Session(engine) as session:
         session.add_all(entries)
         session.commit()
         
+
+
+def get_engine():
+    engine = create_engine('postgresql://postgres:postgres@localhost:5432/postgres')
+    return engine
+
+
+
+def df_to_sql(df):
+    
+    engine = get_engine()
+    Software_Engineer_Levels_Fyi.metadata.drop_all(engine)
+    df.to_sql("software_engineer_levels_fyi", con=engine, if_exists="append", index=False)
+
 
 
 def find_entry(id:str):
@@ -41,3 +46,16 @@ def find_entry(id:str):
         statement = select(Software_Engineer).where(Software_Engineer.id == 0)
         result = session.exec(statement).first()
         print(result)
+
+
+
+
+def execute_query(df: pd.DataFrame, query :str, engine) -> list | None:
+    
+    with Session(engine) as session:
+        result = session.exec(text(query))
+        rows = result.all()
+        
+    for row in rows: 
+        print(row)
+    return rows

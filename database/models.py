@@ -18,28 +18,12 @@ class Software_Engineer(SQLModel, table = True):
 
 
 
-class SoftwareEngineerLevelsFyi(SQLModel, table=True):
-    __tablename__ = "software_engineer_levels_fyi"
+class Software_Engineer_Levels_Fyi(SQLModel, table=True):
+   # __tablename__ = "software_engineer_levels_fyi"
 
     id: int | None = Field(default=None, primary_key=True)
     company_name: str | None = None
     title: str | None = None
     years_of_experience: str | None = None
     total_compensation: str | None = None
-
-
-
-
-
-
-
-
-
-
-
-
-# engine = create_engine('postgresql://postgres:postgres@localhost:5432/postgres')
-# with Session(engine) as session:
-#     statement = select(Software_Engineer).where(Software_Engineer.id == 0)
-#     result = session.exec(statement).first()
-#     print(result)
+    salary : float | None = None
