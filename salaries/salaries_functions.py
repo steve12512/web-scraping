@@ -166,11 +166,9 @@ def sign_in_levels_fyi(driver):
     time.sleep(5)
 
         
-def scrape_pages_for_lyi(driver):
+def scrape_pages_for_lyi(driver, is_at_second_page:bool):
     count = 0
     elements = list()
-    
-    is_at_second_page = True
     
     while True:
         html = driver.page_source

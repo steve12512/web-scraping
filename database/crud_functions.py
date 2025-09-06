@@ -33,7 +33,6 @@ def get_engine():
 
 
 def df_to_sql(df, table):
-    
     engine = get_engine()
     df.to_sql(table, con=engine, if_exists="append", index=False)
 
