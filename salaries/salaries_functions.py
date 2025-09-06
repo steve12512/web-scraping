@@ -135,7 +135,6 @@ def modify_df_column_types(df):
 
 def accept_cookies(driver):
     try:
-        # Wait for the cookie banner to appear
         cookie_button = WebDriverWait(driver, 5).until(
             EC.element_to_be_clickable((By.XPATH, '//button[contains(text(), "Accept All")]'))
         )
@@ -182,6 +181,7 @@ def scrape_pages_for_lyi(driver):
             
             for listing in elements_of_this_individual_page:
                 print(listing)
+                
             elements.extend(elements_of_this_individual_page)
             
             go_to_next_lyi_page(driver, is_at_second_page)
@@ -197,9 +197,7 @@ def scrape_pages_for_lyi(driver):
     return elements
     
 def go_to_next_lyi_page(driver, is_at_second_page=None):
-    
     if is_at_second_page:
-        
         WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//button[normalize-space(text())="2"]'))
         ).click()
@@ -237,7 +235,11 @@ def scrape_lyi_page(soup):
         
         total_compensation_tags = row.find_all('span', class_='css-b4wlzm')
         total_compensation = total_compensation_tags[2].get_text(strip=True) if total_compensation_tags else 'N/A'    
-        elements_of_this_individual_page.append([company, levels, yoe, total_compensation])
+        
+        city_tag = row.find(class_ = 'css-xlmjpr')
+        city = city_tag.get_text(strip=True) if city_tag else 'N/A'    
+    
+        elements_of_this_individual_page.append([company, levels, yoe, city, total_compensation])
         
     return elements_of_this_individual_page
 
@@ -245,9 +247,7 @@ def scrape_lyi_page(soup):
 
 
 def parse_list_to_df(elements:list):
-    
     rows = []
-        
     try:
         for row in elements:
             if len(row) >= 4:
@@ -255,12 +255,11 @@ def parse_list_to_df(elements:list):
                     'Company' : row[0],
                     'Level' : row[1],
                     'Years of Experience' : row[2],
-                    'Total Compensation' : row[3]
+                    'City' : row[3],
+                    'Total Compensation' : row[4]
                 })
-                                                
     except Exception as e:
         print(e.with_traceback)
-    
     df = pd.DataFrame(rows)
     return df
 
@@ -293,3 +292,9 @@ def edit_compensation_column(df):
                     [0]
                     .str.replace(",", ".", regex=False) 
                 )
+        
+def edit_city(df):
+    df['City'] = df['City'].apply(lambda x: x.split('|')[0])
+        
+def add_country(df, country:str):
+    df['country'] = country

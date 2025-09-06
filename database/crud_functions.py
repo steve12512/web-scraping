@@ -32,11 +32,10 @@ def get_engine():
 
 
 
-def df_to_sql(df):
+def df_to_sql(df, table):
     
     engine = get_engine()
-    Software_Engineer_Levels_Fyi.metadata.drop_all(engine)
-    df.to_sql("software_engineer_levels_fyi", con=engine, if_exists="append", index=False)
+    df.to_sql(table, con=engine, if_exists="append", index=False)
 
 
 

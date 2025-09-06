@@ -14,7 +14,7 @@ class Software_Engineer(SQLModel, table = True):
     baseSalaryNumber : float
     oldYearForData : float
     otherContext : str 
-
+    country : str 
 
 
 
@@ -26,4 +26,6 @@ class Software_Engineer_Levels_Fyi(SQLModel, table=True):
     title: str | None = None
     years_of_experience: str | None = None
     total_compensation: str | None = None
+    city : str | None = None
     salary : float | None = None
+    country : str | None = None
