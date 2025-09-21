@@ -13,12 +13,18 @@ from selenium.webdriver.common.keys import Keys
 
 from selenium.webdriver.support import expected_conditions as EC
 
-
+import os
 
 
 def get_driver():
     driver = webdriver.Chrome()
     return driver
+
+
+def create_directory_for_photos():
+    if not os.path.exists('house_photos'):
+        os.mkdir('house_photos')
+
 
 
 def random_click(driver):
