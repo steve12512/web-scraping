@@ -1,3 +1,5 @@
 *.txt
 .env
 *.csv
+*.jpg
+*.svg
