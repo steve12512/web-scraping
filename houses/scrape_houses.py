@@ -152,6 +152,7 @@ class House_Scraper():
 
 
     def scroll_down_a_tiny_bit(self,driver):
+        self.logger.info('Inside the scroll down a tiny bit function1')
         driver.execute_script("window.scrollBy(0, 1000);")
         time.sleep(2)
 
@@ -192,25 +193,35 @@ class House_Scraper():
             self.logger.error('Did not manage to get listing amenities')
             return []
 
+    def show_more(self,driver):
+        self.logger.info('Inside the show more function')
+        show_more_button = driver.find_element(By.CLASS_NAME,'css-67atf2-button-showMoreButton')
+        show_more_button.click()
+        self.logger.info('Clicked the show more button')
+
     def get_amenities(self, driver):
         self.logger.info('Inside the get amenities function')
         amenities = []
         try:
             self.scroll_down_a_tiny_bit(driver)
-            show_more_button = driver.find_element(By.CLASS_NAME,'css-67atf2-button-showMoreButton')
-            show_more_button.click()
-            self.logger.info('Clicked the show more button')
-
-            amenities_object = driver.find_element(By.CLASS_NAME,'css-1xlrieu-sectionWrapper')
-            amenities_list = amenities_object.find_elements(By.TAG_NAME,'ul')
+            self.show_more(driver)
             
-            
+            # delete those
+            # wrapper = driver.find_element(By.CLASS_NAME,'css-1xlrieu-sectionWrapper')
+            # sub_wrapper = wrapper.find_element(By.CLASS_NAME,'css-scctyu-list')
+            # amenities_list = sub_wrapper.find_elements(By.TAG_NAME,'li')
+            #amenities_items = driver.find_element(By.CLASS_NAME,'css-scctyu-list')
             # this line was changed.
-            amenities_items = amenities_list[0].text.split('\n')
-            
-            for item in amenities_items:
-                amenities.append(item)
-                self.logger.info(f'Appended amenities item {item}')
+            #amenities_items = amenities_list[0].text.split('\n')
+            # for item in amenities_list:
+            #     amenities.append(item)
+            #     self.logger.info(f'Appended amenities item {item}')
+
+            sub_wrapper = driver.find_elements(By.CLASS_NAME,'css-scctyu-list')
+            wrapper = sub_wrapper[-1]    
+            items = wrapper.find_elements(By.TAG_NAME,'li')
+            for item in items:
+                amenities.append(item.text)
             
         except Exception:
             self.logger.error('An error occured whilst trying to get amenities ')
@@ -397,6 +408,7 @@ class House_Scraper():
     def scrape_listing(self, listing, driver, original_window, word_to_split_listing_id_on_the_url):
         try:
             listing.click()
+            self.logger.info('Successfully clicked on listing')
         except Exception:
             self.logger.error('Didn t manage to sclick on listing.')
         
