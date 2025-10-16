@@ -410,6 +410,7 @@ class House_Scraper():
 
     
     def scrape_listing(self, listing, driver, original_window, word_to_split_listing_id_on_the_url):
+        encountered_error = False
         try:
             listing.click()
             self.logger.info('Successfully clicked on listing')
@@ -421,38 +422,43 @@ class House_Scraper():
             listing_id = self.get_listing_id(driver, word_to_split_listing_id_on_the_url)
             self.logger.info(f'Acquired listing id {listing_id}')
             
-            title, price, description = self.get_listing_text_attributes(driver)
-            self.logger.info(f'Title : {title}, price : {price}, description : {description}')
-            
-            tags = self.get_listing_tags(driver)
-            self.logger.info(f'Tags : {tags}' )
-            
-            facilities= self.get_facilities(driver)
-            self.logger.info(f'Got facilities for listing with id {listing_id}')
-            
-            amenities = self.get_amenities(driver)
-            self.logger.info(f'Got amenities for listing with id {listing_id}')
-            
-            self.logger.info('Trying to scroll up a bit')
-            self.scroll_up_a_bit(driver)
-            
-            self.scrape_listing_photos_and_create_their_file(driver,listing_id)
-            self.logger.info('Scraped photos')
-            
-            latitude, longitude, number_of_rooms = self.get_geo_data(driver)
-            self.logger.info(f'Latitude {latitude}, longitude : {longitude}, Number of Rooms : {number_of_rooms}')
+            if listing_id.isdigit():
+                
+                title, price, description = self.get_listing_text_attributes(driver)
+                self.logger.info(f'Title : {title}, price : {price}, description : {description}')
+                
+                tags = self.get_listing_tags(driver)
+                self.logger.info(f'Tags : {tags}' )
+                
+                facilities= self.get_facilities(driver)
+                self.logger.info(f'Got facilities for listing with id {listing_id}')
+                
+                amenities = self.get_amenities(driver)
+                self.logger.info(f'Got amenities for listing with id {listing_id}')
+                
+                self.logger.info('Trying to scroll up a bit')
+                self.scroll_up_a_bit(driver)
+                
+                self.scrape_listing_photos_and_create_their_file(driver,listing_id)
+                self.logger.info('Scraped photos')
+                
+                latitude, longitude, number_of_rooms = self.get_geo_data(driver)
+                self.logger.info(f'Latitude {latitude}, longitude : {longitude}, Number of Rooms : {number_of_rooms}')
 
-            self.create_metadata_file_in_the_listings_folder(listing_id,title,price,description,tags,latitude,longitude,number_of_rooms,facilities,amenities)
-            self.logger.info(f'Created metadata file for listing with id ; {listing_id}')
-        
+                self.create_metadata_file_in_the_listings_folder(listing_id,title,price,description,tags,latitude,longitude,number_of_rooms,facilities,amenities)
+                self.logger.info(f'Created metadata file for listing with id ; {listing_id}')
+            else:
+                self.logger.error(f'{listing_id} is not numeric')
+                
         except Exception:
             self.logger.error('something failed when scraping the data')
+            encountered_error = True
         finally:
             
             if driver.current_window_handle != original_window:
                 driver.close()
                 driver.switch_to.window(original_window)
-
+                return encountered_error
 
     # ******** PROGRAM STARTS
 
@@ -484,6 +490,7 @@ class House_Scraper():
 
     def scrape_half_page(self, driver, word_to_split_listing_id_on_the_url):
         try:
+            encountered_error = False
             self.logger.info('Trying to get the container element')
             container = driver.find_element(By.CLASS_NAME, 'css-wp5dsn-container')
             
@@ -492,17 +499,20 @@ class House_Scraper():
             container_listings = self.get_container_listings(container)
             
             original_window = driver.current_window_handle
-
-            self.logger.info('Iterating over the container\'s listings')
-            for  listing in container_listings:
-                try:
-                    self.logger.info('Trying to scrape a listing from the container')
-                    listing_data = self.scrape_listing(listing, driver, original_window, word_to_split_listing_id_on_the_url)
-                except ElementClickInterceptedException:
-                    self.logger.error('Failed to scrape a listing from the container')
+            if len(container_listings) > 0:
+                self.logger.info(f'Iterating over the container\'s listings with len {len(container_listings)}')
+                for  listing in container_listings:
+                    try:
+                        self.logger.info('Trying to scrape a listing from the container')
+                        encountered_error = self.scrape_listing(listing, driver, original_window, word_to_split_listing_id_on_the_url)
+                        if encountered_error:
+                            break
+                    except ElementClickInterceptedException:
+                        self.logger.error('Failed to scrape a listing from the container')
+            else:
+                self.logger.error('This container contained no listings')
         except Exception :
             self.logger.error('Undefined error')
-
         finally:
             print('containers;', len(container_listings))
 
@@ -511,8 +521,11 @@ class House_Scraper():
         For each page, scrape its upper half first.
         Then scroll down a bit, to get more container listings, and scrape the other half
         '''
-        self.scrape_half_page(driver, word_to_split_listing_id_on_the_url)
-        driver.execute_script("window.scrollBy(0, 2000);")
+        encountered_error = self.scrape_half_page(driver, word_to_split_listing_id_on_the_url)
+        if not encountered_error:
+            driver.execute_script("window.scrollBy(0, 2000);")
+        else:
+            self.go_up_a_bit(driver)
         self.scrape_half_page(driver, word_to_split_listing_id_on_the_url)
 
 
