@@ -316,20 +316,24 @@ class House_Scraper():
                     'description' : description,
                     'latitude' : latitude,
                     'longitude'  : longitude,
-                    'number_of_rooms' : number_of_rooms
-                }
-                for i, tag in enumerate(tags):
-                    key = f'tag_{i}'
-                    meta_data[key] = tag
+                    'number_of_rooms' : number_of_rooms,
+                    'tags': list(tags) if len(tags) > 0 else None,
+                    'facilities' : list(facilities) if len(facilities) > 0 else None,
+                    'amenities' : list(amenities) if len(amenities) > 0 else None
+                 }
+                
+                # for i, tag in enumerate(tags):
+                #     #key = f'tag_{i}'
+                #     meta_data[tags].append(tag)
                     
-                for i,facility in enumerate(facilities):
-                    self.logger.info(f'Trying to append facility {facility}')
-                    key = 'facility' + '_' + str(i)
-                    meta_data[key] = facility
+                # for i,facility in enumerate(facilities):
+                #     self.logger.info(f'Trying to append facility {facility}')
+                #     key = 'facility' + '_' + str(i)
+                #     meta_data[key] = facility
                     
-                for i,amenity in enumerate(amenities):
-                    key = 'amenity' + '_' + str(i)
-                    meta_data[key] = amenity
+                # for i,amenity in enumerate(amenities):
+                #     key = 'amenity' + '_' + str(i)
+                #     meta_data[key] = amenity
                     
                 json_meta_data = json.dumps(meta_data, ensure_ascii= False, indent=4)
                 f1.write(json_meta_data)
