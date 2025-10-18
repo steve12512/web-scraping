@@ -18,7 +18,7 @@ import sys
 import zipfile
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
-
+from json import dump
 import logging
 import colorlog
 
@@ -146,11 +146,6 @@ class House_Scraper():
         rows = container.find_elements(By.CLASS_NAME,'css-1efwqj7-cardLink')
         return rows
 
-
-    # def scroll_page(self, driver):
-    #     new_height = driver.execute_script("return document.body.scrollHeight")
-
-
     def scroll_down_a_tiny_bit(self,driver):
         self.logger.info('Inside the scroll down a tiny bit function1')
         driver.execute_script("window.scrollBy(0, 1000);")
@@ -160,23 +155,6 @@ class House_Scraper():
         self.logger.info('In the scroll down and wait 2 secs function')
         driver.execute_script("window.scrollBy(0, 2000);")
         time.sleep(2)
-
-
-    # def scrape_half_page(driver):
-        
-    #     listings_data_of_this_page = []
-        
-    #     container = get_container(driver)
-    #     container_listings = get_container_listings(container)
-        
-        
-    #     for listing in container_listings:
-            
-    #         listing_data =scrape_listing(listing,driver)
-    #         listings_data_of_this_page.append(listing_data)
-        
-        
-    #     return listings_data_of_this_page
         
     def get_facilities(self,driver):
         self.logger.info('Inside the get facilities function')
@@ -322,18 +300,6 @@ class House_Scraper():
                     'amenities' : list(amenities) if len(amenities) > 0 else None
                  }
                 
-                # for i, tag in enumerate(tags):
-                #     #key = f'tag_{i}'
-                #     meta_data[tags].append(tag)
-                    
-                # for i,facility in enumerate(facilities):
-                #     self.logger.info(f'Trying to append facility {facility}')
-                #     key = 'facility' + '_' + str(i)
-                #     meta_data[key] = facility
-                    
-                # for i,amenity in enumerate(amenities):
-                #     key = 'amenity' + '_' + str(i)
-                #     meta_data[key] = amenity
                     
                 json_meta_data = json.dumps(meta_data, ensure_ascii= False, indent=4)
                 f1.write(json_meta_data)
@@ -348,32 +314,6 @@ class House_Scraper():
         self.logger.info('******************* In the go up a bit function ******************')
         driver.execute_script("window.scrollBy(0, -2000);")   
             
-            
-    # def get_listing_text_attributes(self, driver):
-    #     try:
-    #         #time.sleep(2)
-    #         # title = driver.find_element(By.CLASS_NAME,'css-1ql5bbl').text
-    #         # price = driver.find_element(By.CLASS_NAME, 'css-1bop1zx-pricingContent').text
-    #         # area = driver.find_element(By.CLASS_NAME, 'css-2ccjfp').text
-    #         # description = driver.find_element(By.CLASS_NAME, 'css-31lj5q').text
-    #         # full_description = driver.find_element(By.CLASS_NAME, 'css-1liw7jd-preWrap-breakWord').text
-            
-    #         wait = WebDriverWait(driver, 10)
-
-    #         title = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'css-1ql5bbl'))).text
-    #         price = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'css-1bop1zx-pricingContent'))).text
-    #         area = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'css-2ccjfp'))).text
-    #         description = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'css-31lj5q'))).text
-    #         full_description = wait.until(EC.presence_of_element_located((By.CLASS_NAME, 'css-1liw7jd-preWrap-breakWord'))).text
-
-
-    #         return title, price, area, description, full_description
-        
-    #     except Exception:
-    #         self.logger.error('Either the title or the price or the area or the descrption or the full descrption of the listing s text attributes were not found.')
-    #         return (None,None,None,None,None,)
-            
-
     def get_listing_text_attributes(self, driver):
             wait = WebDriverWait(driver, 2)
             try:
@@ -459,13 +399,6 @@ class House_Scraper():
                 driver.close()
                 driver.switch_to.window(original_window)
                 return encountered_error
-
-    # ******** PROGRAM STARTS
-
-    # logger = get_logger()
-    # driver = get_driver()
-    # create_directory_for_photos()
-    # #ipython = get_ipython()
 
     def enter_site(self,driver,city,url):
         tries = 0
