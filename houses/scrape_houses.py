@@ -372,7 +372,7 @@ class House_Scraper():
                 
                 
                 ########################
-                db = get_db()
+                db = next(get_db())
                 self.logger.info('Got db')
                 insert_listing(db,meta_data)                
                 self.logger.info(f'Inserted metadata object{meta_data}')
