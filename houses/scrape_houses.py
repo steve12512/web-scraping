@@ -277,7 +277,26 @@ class House_Scraper():
                     self.logger.info('Image height is lesss than 45')
                     
                     
-    def create_metadata_file_in_the_listings_folder(self, listing_id,title,price,description,tags,latitude,longitude,number_of_rooms,facilities,amenities):
+    def create_meta_data_object(self,listing_id,title,price,description,tags,latitude,longitude,number_of_rooms,facilities,amenities):
+        self.logger.info('Inside the create json object function')
+        meta_data = {
+                    'listing_id' : listing_id, 
+                    'title' : title if title is not None else 'N/A',
+                    'price' : price if price is not None else 'N/A',
+                    'description' : description if description is not None else 'N/A',
+                    'latitude' : latitude if latitude is not None else 'N/A',
+                    'longitude'  : longitude if longitude is not None else 'N/A',
+                    'number_of_rooms' : number_of_rooms if number_of_rooms is not None else 'N/A',
+                    'tags': list(tags) if len(tags) > 0 else None,
+                    'facilities' : list(facilities) if len(facilities) > 0 else None,
+                    'amenities' : list(amenities) if len(amenities) > 0 else None
+                 }
+        return meta_data                    
+                    
+                    
+                    
+                    
+    def create_metadata_file_in_the_listings_folder(self, listing_id, meta_data):
         try:
             if not isinstance(listing_id,str):
                 self.logger.error(f'Listing with id; {listing_id} is not of type; str')
@@ -287,20 +306,18 @@ class House_Scraper():
             self.logger.info(f'Created folder or folder already exists for listing with id; {listing_id}')
             file = os.path.join(folder,'.metadata')
             with open (file, 'w', encoding='utf-8') as f1:
-                meta_data = {
-                    'listing_id' : listing_id,
-                    'title' : title,
-                    'price' : price,
-                    'description' : description,
-                    'latitude' : latitude,
-                    'longitude'  : longitude,
-                    'number_of_rooms' : number_of_rooms,
-                    'tags': list(tags) if len(tags) > 0 else None,
-                    'facilities' : list(facilities) if len(facilities) > 0 else None,
-                    'amenities' : list(amenities) if len(amenities) > 0 else None
-                 }
-                
-                    
+                # meta_data = {
+                #     'listing_id' : listing_id,
+                #     'title' : title,
+                #     'price' : price,
+                #     'description' : description,
+                #     'latitude' : latitude,
+                #     'longitude'  : longitude,
+                #     'number_of_rooms' : number_of_rooms,
+                #     'tags': list(tags) if len(tags) > 0 else None,
+                #     'facilities' : list(facilities) if len(facilities) > 0 else None,
+                #     'amenities' : list(amenities) if len(amenities) > 0 else None
+                #  }
                 json_meta_data = json.dumps(meta_data, ensure_ascii= False, indent=4)
                 f1.write(json_meta_data)
                 self.logger.info(f'Wrote meta_data file for listing with id; {listing_id}')
@@ -385,7 +402,10 @@ class House_Scraper():
                 latitude, longitude, number_of_rooms = self.get_geo_data(driver)
                 self.logger.info(f'Latitude {latitude}, longitude : {longitude}, Number of Rooms : {number_of_rooms}')
 
-                self.create_metadata_file_in_the_listings_folder(listing_id,title,price,description,tags,latitude,longitude,number_of_rooms,facilities,amenities)
+                meta_data = self.create_meta_data_object(listing_id,title,price,description,tags,latitude,longitude,number_of_rooms,facilities,amenities)
+                self.logger.info('Exiting from the create meta data object function')
+
+                self.create_metadata_file_in_the_listings_folder(listing_id, meta_data)
                 self.logger.info(f'Created metadata file for listing with id ; {listing_id}')
             else:
                 self.logger.error(f'{listing_id} is not numeric')

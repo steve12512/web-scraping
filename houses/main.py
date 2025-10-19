@@ -2,8 +2,8 @@ from scrape_houses import House_Scraper
 
 
 places_to_be_scraped = {
+    'London' : ['London', 'UK', 'https://housinganywhere.com/s/London--United-Kingdom', 'gb'],
     'Amsterdam' : ['Amsterdam', 'Netherlands', 'https://housinganywhere.com/s/Amsterdam--Netherlands', 'nl'],
-    'London' : ['London', 'UK', 'https://housinganywhere.com/s/London--United-Kingdom', 'gb']
 }
 
 for city, values in places_to_be_scraped.items():
