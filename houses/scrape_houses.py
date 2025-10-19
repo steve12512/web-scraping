@@ -21,31 +21,8 @@ from selenium.webdriver.common.keys import Keys
 from json import dump
 import logging
 import colorlog
-
-def get_logger():
-    logger = colorlog.getLogger(__name__)
-    logger.setLevel(logging.INFO)
-    if not logger.handlers:
-        handler = colorlog.StreamHandler()
-        formatter = colorlog.ColoredFormatter(
-            "%(log_color)s%(asctime)s [%(levelname)s] %(message)s",
-            log_colors={
-                "DEBUG": "cyan",
-                "INFO": "green",
-                "WARNING": "yellow",
-                "ERROR": "red",
-                "CRITICAL": "bold_red",
-            }
-        )
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
-        file_handler = logging.FileHandler("logging.txt", encoding="utf-8")
-        file_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
-        file_handler.setFormatter(file_formatter)
-        logger.addHandler(file_handler)
-
-    return logger
-
+from database.houses.crud_functions import get_db, insert_listing
+from houses.logger import get_logger
 
 class House_Scraper():
 
@@ -102,11 +79,11 @@ class House_Scraper():
     def create_directory_for_photos(self):
         self.logger.info(f'Trying to create the directory; house_photos/{self.country}_{self.city}_house_photos')
         try:
-            if not os.path.exists(f'house_photos/{self.country}_{self.city}_house_photos'):
-                os.makedirs(f'house_photos/{self.country}_{self.city}_house_photos')
-                self.logger.info(f'Successfully created the directory; house_photos/{self.country}_{self.city}_house_photos')
+            if not os.path.exists(f'houses/house_photos/{self.country}_{self.city}_house_photos'):
+                os.makedirs(f'houses/house_photos/{self.country}_{self.city}_house_photos')
+                self.logger.info(f'Successfully created the directory; houses/house_photos/{self.country}_{self.city}_house_photos')
         except Exception as e:
-            self.logger.error(f'Failed to create directory; house_photos/{self.country}_{self.city}_house_photos')
+            self.logger.error(f'Failed to create directory; houses/house_photos/{self.country}_{self.city}_house_photos')
             self.logger.error(f'Error is {e}')
 
 
@@ -294,8 +271,6 @@ class House_Scraper():
         return meta_data                    
                     
                     
-                    
-                    
     def create_metadata_file_in_the_listings_folder(self, listing_id, meta_data):
         try:
             if not isinstance(listing_id,str):
@@ -361,7 +336,6 @@ class House_Scraper():
             self.logger.info('Successfully clicked on listing')
         except Exception:
             self.logger.error('Didn t manage to sclick on listing.')
-        
         try:
             driver.switch_to.window(driver.window_handles[-1])
             listing_id = self.get_listing_id(driver, word_to_split_listing_id_on_the_url)
@@ -395,6 +369,13 @@ class House_Scraper():
 
                 self.create_metadata_file_in_the_listings_folder(listing_id, meta_data)
                 self.logger.info(f'Created metadata file for listing with id ; {listing_id}')
+                
+                
+                ########################
+                db = get_db()
+                self.logger.info('Got db')
+                insert_listing(db,meta_data)                
+                self.logger.info(f'Inserted metadata object{meta_data}')
             else:
                 self.logger.error(f'{listing_id} is not numeric')
                 

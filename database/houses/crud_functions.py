@@ -1,6 +1,6 @@
 from typing import List
 from pymongo import MongoClient
-from houses.scrape_houses import get_logger
+from houses.logger import get_logger
 
 logger = get_logger()
 details = 'mongodb://localhost:27017' 

@@ -1,7 +1,8 @@
-from scrape_houses import House_Scraper
+from houses.scrape_houses import House_Scraper
 
 
 places_to_be_scraped = {
+    'Stockholm' : ['Stockholm', 'Sweden', 'https://housinganywhere.com/s/Stockholm--Sweden', 'se'],
     'London' : ['London', 'UK', 'https://housinganywhere.com/s/London--United-Kingdom', 'gb'],
     'Amsterdam' : ['Amsterdam', 'Netherlands', 'https://housinganywhere.com/s/Amsterdam--Netherlands', 'nl'],
 }
