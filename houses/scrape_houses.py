@@ -208,51 +208,40 @@ class House_Scraper():
         images = driver.find_elements(By.TAG_NAME, 'img')   
         return images
             
-    def scrape_listing_photos_and_create_their_file(self, driver, listing_id:str):
-        self.logger.info('Inside the scrape_listing_photos_and_create_their_file function ')
-        
+    def scrape_listing_photos_and_save_them_as_files_in_file_explorer(self, driver, listing_id:str):
+        self.logger.info('Inside the scrape_listing_photos_and_save_them_as_files_in_file_explorer function ')
         self.logger.info(f'Trying to create the houses/house_photos/{self.country}_{self.city}_house_photos directory')
         folder = os.path.join(f'houses/house_photos/{self.country}_{self.city}_house_photos', listing_id)
         os.makedirs(folder, exist_ok=True)
-
         images = self.get_images(driver)
         self.logger.info('Got more images')
-        
         unique_images = set(images)
         zip_file_path = os.path.join(folder,"photos.zip")
         self.logger.info(f'Created zip file path {zip_file_path}')        
         with zipfile.ZipFile(zip_file_path, 'w', compression=zipfile.ZIP_DEFLATED) as f1:
             self.logger.info(f'Into the zip path {zip_file_path}')    
-            
             for i, image in enumerate(unique_images):
                 self.logger.info(f'Enumerating the images of listing with id; {listing_id}')
-                
                 size = image.size
                 height = size['height']
                 if height >= 45:
                     image_url = image.get_attribute('src') or image.get_attribute('data-src') or image.get_attribute('data-lazy') or image.get_attribute('data-original')
-                    
                     if image_url.startswith("http"):
-
                         response = requests.get(image_url)
                         image_to_be_written = response.content
-                        
                         image_bytes = len(image_to_be_written)
-                        
                         if image_bytes > 100 * 1000:
-
                             image_name = listing_id + '_' + str(i) + '.jpg'
                             self.logger.info(f'Inside listing {listing_id}, trying to write image {image_name}')
                             f1.writestr(image_name, image_to_be_written)
                             self.logger.info(f'Successfully wrote image, with image name {image_name}')
-        
                     else:
                         self.logger.error(f'image {i} doesnt start with http')
                         self.logger.error(image_url)
-        
                 else:
                     self.logger.info('Image height is lesss than 45')
-                    
+            if zip_file_path:
+                return zip_file_path
                     
     def create_meta_data_object(self,listing_id,title,price,description,tags,latitude,longitude,number_of_rooms,facilities,amenities):
         self.logger.info('Inside the create json object function')
@@ -358,8 +347,8 @@ class House_Scraper():
                 self.logger.info('Trying to scroll up a bit')
                 self.scroll_up_a_bit(driver)
                 
-                self.scrape_listing_photos_and_create_their_file(driver,listing_id)
-                self.logger.info('Scraped photos')
+                photos_folder_path =self.scrape_listing_photos_and_save_them_as_files_in_file_explorer(driver,listing_id)
+                self.logger.info(f'Scraped photos and saved them in a local directory')
                 
                 latitude, longitude, number_of_rooms = self.get_geo_data(driver)
                 self.logger.info(f'Latitude {latitude}, longitude : {longitude}, Number of Rooms : {number_of_rooms}')
