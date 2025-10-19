@@ -211,8 +211,8 @@ class House_Scraper():
     def scrape_listing_photos_and_create_their_file(self, driver, listing_id:str):
         self.logger.info('Inside the scrape_listing_photos_and_create_their_file function ')
         
-        self.logger.info(f'Trying to create the house_photos/{self.country}_{self.city}_house_photos directory')
-        folder = os.path.join(f'house_photos/{self.country}_{self.city}_house_photos', listing_id)
+        self.logger.info(f'Trying to create the houses/house_photos/{self.country}_{self.city}_house_photos directory')
+        folder = os.path.join(f'houses/house_photos/{self.country}_{self.city}_house_photos', listing_id)
         os.makedirs(folder, exist_ok=True)
 
         images = self.get_images(driver)
@@ -276,7 +276,7 @@ class House_Scraper():
             if not isinstance(listing_id,str):
                 self.logger.error(f'Listing with id; {listing_id} is not of type; str')
                 raise ValueError
-            folder = os.path.join(f'house_photos/{self.country}_{self.city}_house_photos', listing_id)    
+            folder = os.path.join(f'houses/house_photos/{self.country}_{self.city}_house_photos', listing_id)    
             os.makedirs(folder, exist_ok=True)
             self.logger.info(f'Created folder or folder already exists for listing with id; {listing_id}')
             file = os.path.join(folder,'.metadata')

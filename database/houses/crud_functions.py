@@ -13,10 +13,11 @@ def get_db():
     
 def insert_listing(db, listing:dict):
     collection = db['houses']
+    logger.info('Got collection')
     if collection.find_one({"listing_id": listing["listing_id"]}):
-        return f'Listing with id {listing["listing_id"]} already exists in the collection.'
+        logger.error(f'Listing with id {listing["listing_id"]} already exists in the collection.')
     collection.insert_one(listing)
-    return f'Inserted listing with id; {listing["listing_id"]} in the collection.'
+    logger.info(f'Inserted listing with id; {listing["listing_id"]} in the collection.')
     
     
 def insert_listings(db, batch:List[dict]):
