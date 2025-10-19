@@ -273,6 +273,8 @@ class House_Scraper:
         self.logger.info("Inside the create json object function")
         meta_data = {
             "listing_id": listing_id,
+            "country" : self.country,
+            "city" : self.city,
             "title": title if title is not None else "N/A",
             "price": price if price is not None else "N/A",
             "description": description if description is not None else "N/A",
