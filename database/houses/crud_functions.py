@@ -16,13 +16,11 @@ def insert_listing(db, listing:dict):
     try:
         collection = db['houses']
         logger.info('Got collection')
-        # try:
-        #     if collection.find_one({"listing_id": listing["listing_id"]}):
-        #         logger.error(f'Listing with id {listing["listing_id"]} already exists in the collection.')
-        # except:
-        #     logger.error(f'An error occured while trying to find whether or not a listing with id {listing['listing_id']} already exists.')
-        collection.insert_one(listing)
-        logger.info(f'Inserted listing with id; {listing["listing_id"]} in the collection.')
+        if collection.find_one({"listing_id": listing["listing_id"]}):
+            logger.error(f'Listing with id {listing["listing_id"]} already exists in the collection.')
+        else:
+            collection.insert_one(listing)
+            logger.info(f'Inserted listing with id; {listing["listing_id"]} in the collection.')
     except Exception as e:
         logger.error(f'Encountered Exception while trying to insert a listing into the db. {e}')
     
