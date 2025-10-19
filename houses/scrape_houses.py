@@ -74,22 +74,18 @@ class House_Scraper:
         cookies_button.click()
 
     def create_directory_for_photos(self):
+        folder = Path("houses")/"house_photos"/f"{self.country}_{self.city}_house_photos"
         self.logger.info(
-            f"Trying to create the directory; house_photos/{self.country}_{self.city}_house_photos"
+            f"Trying to create the directory; {folder}"
         )
         try:
-            if not os.path.exists(
-                f"houses/house_photos/{self.country}_{self.city}_house_photos"
-            ):
-                os.makedirs(
-                    f"houses/house_photos/{self.country}_{self.city}_house_photos"
-                )
-                self.logger.info(
-                    f"Successfully created the directory; houses/house_photos/{self.country}_{self.city}_house_photos"
-                )
+            folder.mkdir(parents=True,exist_ok=True)
+            self.logger.info(
+                f"Successfully created the directory; {folder}"
+            )
         except Exception as e:
             self.logger.error(
-                f"Failed to create directory; houses/house_photos/{self.country}_{self.city}_house_photos"
+                f"Failed to create directory; {folder}"
             )
             self.logger.error(f"Error is {e}")
 
@@ -213,20 +209,14 @@ class House_Scraper:
         self.logger.info(
             "Inside the scrape_listing_photos_and_save_them_as_files_in_file_explorer function "
         )
-        self.logger.info(
-            f"Trying to create the houses/house_photos/{self.country}_{self.city}_house_photos directory"
-        )
-        # folder = os.path.join(
-        #     f"houses/house_photos/{self.country}_{self.city}_house_photos", listing_id
-        # )
-        folder = Path("houses") / "house_photos" / f"{self.country}_{self.city}" / f"{listing_id}_house_photos"
-
-        os.makedirs(folder, exist_ok=True)
+        base_folder = Path("houses")/"house_photos"/f"{self.country}_{self.city}_house_photos"
+        listing_folder = base_folder / listing_id
+        listing_folder.mkdir(parents=True, exist_ok=True)
+        self.logger.info(f"Listing folder ready: {listing_folder.as_posix()}")
         images = self.get_images(driver)
         self.logger.info("Got more images")
         unique_images = set(images)
-        #zip_file_path = os.path.join(folder, "photos.zip")
-        zip_file_path = folder / "photos.zip"
+        zip_file_path = listing_folder/"photos.zip"
         self.logger.info(f"Created zip file path {zip_file_path}")
         with zipfile.ZipFile(
             zip_file_path, "w", compression=zipfile.ZIP_DEFLATED
@@ -294,7 +284,7 @@ class House_Scraper:
             "tags": list(tags) if len(tags) > 0 else None,
             "facilities": list(facilities) if len(facilities) > 0 else None,
             "amenities": list(amenities) if len(amenities) > 0 else None,
-            "photos_folder_path" : photos_folder_path if photos_folder_path is not None else 'N/A'
+            "photos_folder_path" : str(photos_folder_path) if photos_folder_path is not None else 'N/A'
         }
         return meta_data
 

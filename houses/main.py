@@ -2,6 +2,7 @@ from houses.scrape_houses import House_Scraper
 
 
 places_to_be_scraped = {
+    'Barcelona' : ['Barcelona', 'Spain', 'https://housinganywhere.com/s/Barcelona--Spain','es'],
     'Stockholm' : ['Stockholm', 'Sweden', 'https://housinganywhere.com/s/Stockholm--Sweden', 'se'],
     'London' : ['London', 'UK', 'https://housinganywhere.com/s/London--United-Kingdom', 'gb'],
     'Amsterdam' : ['Amsterdam', 'Netherlands', 'https://housinganywhere.com/s/Amsterdam--Netherlands', 'nl'],
