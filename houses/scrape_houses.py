@@ -306,18 +306,6 @@ class House_Scraper():
             self.logger.info(f'Created folder or folder already exists for listing with id; {listing_id}')
             file = os.path.join(folder,'.metadata')
             with open (file, 'w', encoding='utf-8') as f1:
-                # meta_data = {
-                #     'listing_id' : listing_id,
-                #     'title' : title,
-                #     'price' : price,
-                #     'description' : description,
-                #     'latitude' : latitude,
-                #     'longitude'  : longitude,
-                #     'number_of_rooms' : number_of_rooms,
-                #     'tags': list(tags) if len(tags) > 0 else None,
-                #     'facilities' : list(facilities) if len(facilities) > 0 else None,
-                #     'amenities' : list(amenities) if len(amenities) > 0 else None
-                #  }
                 json_meta_data = json.dumps(meta_data, ensure_ascii= False, indent=4)
                 f1.write(json_meta_data)
                 self.logger.info(f'Wrote meta_data file for listing with id; {listing_id}')
