@@ -7,23 +7,17 @@ import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 import time
-import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import os
 import json
-import logging
-import colorlog
-import sys
 import zipfile
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from json import dump
-import logging
-import colorlog
 from database.houses.crud_functions import get_db, insert_listing
 from houses.logger import get_logger
-
+from pathlib import Path
 
 class House_Scraper:
 
@@ -222,14 +216,17 @@ class House_Scraper:
         self.logger.info(
             f"Trying to create the houses/house_photos/{self.country}_{self.city}_house_photos directory"
         )
-        folder = os.path.join(
-            f"houses/house_photos/{self.country}_{self.city}_house_photos", listing_id
-        )
+        # folder = os.path.join(
+        #     f"houses/house_photos/{self.country}_{self.city}_house_photos", listing_id
+        # )
+        folder = Path("houses") / "house_photos" / f"{self.country}_{self.city}" / f"{listing_id}_house_photos"
+
         os.makedirs(folder, exist_ok=True)
         images = self.get_images(driver)
         self.logger.info("Got more images")
         unique_images = set(images)
-        zip_file_path = os.path.join(folder, "photos.zip")
+        #zip_file_path = os.path.join(folder, "photos.zip")
+        zip_file_path = folder / "photos.zip"
         self.logger.info(f"Created zip file path {zip_file_path}")
         with zipfile.ZipFile(
             zip_file_path, "w", compression=zipfile.ZIP_DEFLATED
@@ -281,6 +278,7 @@ class House_Scraper:
         number_of_rooms,
         facilities,
         amenities,
+        photos_folder_path
     ):
         self.logger.info("Inside the create json object function")
         meta_data = {
@@ -296,6 +294,7 @@ class House_Scraper:
             "tags": list(tags) if len(tags) > 0 else None,
             "facilities": list(facilities) if len(facilities) > 0 else None,
             "amenities": list(amenities) if len(amenities) > 0 else None,
+            "photos_folder_path" : photos_folder_path if photos_folder_path is not None else 'N/A'
         }
         return meta_data
 
@@ -436,6 +435,7 @@ class House_Scraper:
                     number_of_rooms,
                     facilities,
                     amenities,
+                    photos_folder_path
                 )
                 self.logger.info("Exiting from the create meta data object function")
 
