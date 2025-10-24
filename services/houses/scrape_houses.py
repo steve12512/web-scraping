@@ -15,9 +15,10 @@ import zipfile
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 from json import dump
-from database.houses.crud_functions import get_db, insert_listing
-from houses.logger import get_logger
+from database.houses.crud_functions import get_db, insert_listings
+from services.houses.logger import get_logger
 from pathlib import Path
+
 
 class House_Scraper:
 
@@ -29,6 +30,7 @@ class House_Scraper:
         city="Berlin",
         url="https://housinganywhere.com/",
         word_to_split_listing_id_on_the_url="de",
+        max_listings_to_be_scraped=1000,
     ):
 
         self.country = country
@@ -36,6 +38,7 @@ class House_Scraper:
         self.url = url
         self.driver = webdriver.Chrome()
         self.word_to_split_listing_id_on_the_url = word_to_split_listing_id_on_the_url
+        self.max_listings_to_be_scraped = max_listings_to_be_scraped
 
     def random_click(self, driver):
         driver.execute_script("document.elementFromPoint(10, 10).click();")
@@ -74,19 +77,18 @@ class House_Scraper:
         cookies_button.click()
 
     def create_directory_for_photos(self):
-        folder = Path("houses")/"house_photos"/f"{self.country}_{self.city}_house_photos"
-        self.logger.info(
-            f"Trying to create the directory; {folder}"
+        folder = (
+            Path("services")
+            / "houses"
+            / "house_photos"
+            / f"{self.country}_{self.city}_house_photos"
         )
+        self.logger.info(f"Trying to create the directory; {folder}")
         try:
-            folder.mkdir(parents=True,exist_ok=True)
-            self.logger.info(
-                f"Successfully created the directory; {folder}"
-            )
+            folder.mkdir(parents=True, exist_ok=True)
+            self.logger.info(f"Successfully created the directory; {folder}")
         except Exception as e:
-            self.logger.error(
-                f"Failed to create directory; {folder}"
-            )
+            self.logger.error(f"Failed to create directory; {folder}")
             self.logger.error(f"Error is {e}")
 
     def get_geo_data(self, driver):
@@ -209,14 +211,19 @@ class House_Scraper:
         self.logger.info(
             "Inside the scrape_listing_photos_and_save_them_as_files_in_file_explorer function "
         )
-        base_folder = Path("houses")/"house_photos"/f"{self.country}_{self.city}_house_photos"
+        base_folder = (
+            Path("services")
+            / "houses"
+            / "house_photos"
+            / f"{self.country}_{self.city}_house_photos"
+        )
         listing_folder = base_folder / listing_id
         listing_folder.mkdir(parents=True, exist_ok=True)
         self.logger.info(f"Listing folder ready: {listing_folder.as_posix()}")
         images = self.get_images(driver)
         self.logger.info("Got more images")
         unique_images = set(images)
-        zip_file_path = listing_folder/"photos.zip"
+        zip_file_path = listing_folder / "photos.zip"
         self.logger.info(f"Created zip file path {zip_file_path}")
         with zipfile.ZipFile(
             zip_file_path, "w", compression=zipfile.ZIP_DEFLATED
@@ -268,13 +275,13 @@ class House_Scraper:
         number_of_rooms,
         facilities,
         amenities,
-        photos_folder_path
+        photos_folder_path,
     ):
         self.logger.info("Inside the create json object function")
         meta_data = {
             "listing_id": listing_id,
-            "country" : self.country,
-            "city" : self.city,
+            "country": self.country,
+            "city": self.city,
             "title": title if title is not None else "N/A",
             "price": price if price is not None else "N/A",
             "description": description if description is not None else "N/A",
@@ -286,7 +293,9 @@ class House_Scraper:
             "tags": list(tags) if len(tags) > 0 else None,
             "facilities": list(facilities) if len(facilities) > 0 else None,
             "amenities": list(amenities) if len(amenities) > 0 else None,
-            "photos_folder_path" : str(photos_folder_path) if photos_folder_path is not None else 'N/A'
+            "photos_folder_path": (
+                str(photos_folder_path) if photos_folder_path is not None else "N/A"
+            ),
         }
         return meta_data
 
@@ -296,7 +305,7 @@ class House_Scraper:
                 self.logger.error(f"Listing with id; {listing_id} is not of type; str")
                 raise ValueError
             folder = os.path.join(
-                f"houses/house_photos/{self.country}_{self.city}_house_photos",
+                f"services/houses/house_photos/{self.country}_{self.city}_house_photos",
                 listing_id,
             )
             os.makedirs(folder, exist_ok=True)
@@ -373,11 +382,13 @@ class House_Scraper:
         self, listing, driver, original_window, word_to_split_listing_id_on_the_url
     ):
         encountered_error = False
+        meta_data = dict()
         try:
             listing.click()
             self.logger.info("Successfully clicked on listing")
         except Exception:
             self.logger.error("Didn t manage to sclick on listing.")
+            return encountered_error, meta_data
         try:
             driver.switch_to.window(driver.window_handles[-1])
             listing_id = self.get_listing_id(
@@ -427,20 +438,17 @@ class House_Scraper:
                     number_of_rooms,
                     facilities,
                     amenities,
-                    photos_folder_path
+                    photos_folder_path,
                 )
                 self.logger.info("Exiting from the create meta data object function")
 
-                self.create_metadata_file_in_the_listings_folder(listing_id, meta_data)
-                self.logger.info(
-                    f"Created metadata file for listing with id ; {listing_id}"
-                )
+                # the lines below have been commented out, because we now save the .metadata files in our mongodb
 
-                ########################
-                db = next(get_db())
-                self.logger.info("Got db")
-                insert_listing(db, meta_data)
-                self.logger.info(f"Inserted metadata object{meta_data}")
+                # self.create_metadata_file_in_the_listings_folder(listing_id, meta_data)
+                # self.logger.info(
+                #     f"Created metadata file for listing with id ; {listing_id}"
+                # )
+
             else:
                 self.logger.error(f"{listing_id} is not numeric")
 
@@ -452,7 +460,7 @@ class House_Scraper:
             if driver.current_window_handle != original_window:
                 driver.close()
                 driver.switch_to.window(original_window)
-                return encountered_error
+            return encountered_error, meta_data
 
     def enter_site(self, driver, city, url):
         tries = 0
@@ -478,6 +486,8 @@ class House_Scraper:
     def scrape_half_page(self, driver, word_to_split_listing_id_on_the_url):
         try:
             encountered_error = False
+            meta_data = dict()
+            half_batch = list()
             self.logger.info("Trying to get the container element")
             container = driver.find_element(By.CLASS_NAME, "css-wp5dsn-container")
 
@@ -495,7 +505,7 @@ class House_Scraper:
                         self.logger.info(
                             "Trying to scrape a listing from the container"
                         )
-                        encountered_error = self.scrape_listing(
+                        encountered_error, meta_data = self.scrape_listing(
                             listing,
                             driver,
                             original_window,
@@ -503,6 +513,8 @@ class House_Scraper:
                         )
                         if encountered_error:
                             break
+                        else:
+                            half_batch.append(meta_data)
                     except ElementClickInterceptedException:
                         self.logger.error(
                             "Failed to scrape a listing from the container"
@@ -512,21 +524,51 @@ class House_Scraper:
         except Exception:
             self.logger.error("Undefined error")
         finally:
-            print("containers;", len(container_listings))
+            self.logger.info(f"Len of container listings is {len(container_listings)}")
+            return encountered_error, half_batch
+
+    def insert_page_listings_to_db(self, page_batch):
+        try:
+            self.logger.info("Inside the insert page listing to db function")
+            db = next(get_db())
+            self.logger.info("Got db")
+            insert_listings(db, page_batch)
+            self.logger.info(f"Inserted page_batch of listings{page_batch}")
+        except Exception as e:
+            self.logger.error(
+                f"An Exception occured while trying to insert page_batch listings to db"
+            )
 
     def scrape_page(self, driver, word_to_split_listing_id_on_the_url):
         """
         For each page, scrape its upper half first.
         Then scroll down a bit, to get more container listings, and scrape the other half
         """
-        encountered_error = self.scrape_half_page(
-            driver, word_to_split_listing_id_on_the_url
-        )
-        if not encountered_error:
-            driver.execute_script("window.scrollBy(0, 2000);")
-        else:
-            self.go_up_a_bit(driver)
-        self.scrape_half_page(driver, word_to_split_listing_id_on_the_url)
+        try:
+            page_batch = list()
+
+            encountered_error, half_batch = self.scrape_half_page(
+                driver, word_to_split_listing_id_on_the_url
+            )
+            if not encountered_error:
+                driver.execute_script("window.scrollBy(0, 2000);")
+                if len(half_batch) > 0:
+                    page_batch.extend(half_batch)
+            else:
+                self.go_up_a_bit(driver)
+
+            encountered_error, half_batch = self.scrape_half_page(
+                driver, word_to_split_listing_id_on_the_url
+            )
+            if not encountered_error and len(half_batch) > 0:
+                page_batch.extend(half_batch)
+            self.insert_page_listings_to_db(page_batch)
+            scraped_listings = len(page_batch)
+            return scraped_listings
+        except Exception as e:
+            self.logger.error(
+                f"An exception occured while trying to scrape a whole page {e}"
+            )
 
     def go_to_next_page(self, driver):
         self.logger.info("Trying to go to the next Page")
@@ -536,14 +578,27 @@ class House_Scraper:
         next_button.click()
         self.logger.info("Clicked on next Page")
 
-    def scrape_pages(self, driver, logger, word_to_split_listing_id_on_the_url):
+    def scrape_pages(
+        self,
+        driver,
+        logger,
+        word_to_split_listing_id_on_the_url,
+        max_listings_to_be_scraped=1000,
+    ):
         logger.info("Started Scraping Pages")
         pages_scraped = 0
+        total_listings_scraped = 0
         try:
-            while True:
+            while True and total_listings_scraped < max_listings_to_be_scraped:
                 try:
                     logger.info(f"Trying to Scrape the {pages_scraped}th Page")
-                    self.scrape_page(driver, word_to_split_listing_id_on_the_url)
+                    number_of_listings_scraped_in_this_page = self.scrape_page(
+                        driver, word_to_split_listing_id_on_the_url
+                    )
+                    if number_of_listings_scraped_in_this_page is not None:
+                        total_listings_scraped += (
+                            number_of_listings_scraped_in_this_page
+                        )
                     logger.info(f"Successfuly scraped the {pages_scraped}th Page")
 
                     pages_scraped += 1
@@ -561,7 +616,7 @@ class House_Scraper:
                         break
                 except Exception as e:
                     logger.error(
-                        f"Encounterd Error during the scraping of the {pages_scraped}th Page",
+                        f"Encounterd Error during the scraping of the {pages_scraped}th Page\n{e}",
                         exc_info=True,
                     )
                     logger.error("Attempting to go up a bit")
@@ -578,4 +633,9 @@ class House_Scraper:
 
         self.create_directory_for_photos()
         self.enter_site(driver, city, url)
-        self.scrape_pages(driver, logger, word_to_split_listing_id_on_the_url)
+        self.scrape_pages(
+            driver,
+            logger,
+            word_to_split_listing_id_on_the_url,
+            self.max_listings_to_be_scraped,
+        )

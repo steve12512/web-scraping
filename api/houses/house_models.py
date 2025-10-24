@@ -4,6 +4,8 @@ from pydantic import BaseModel
 
 class Housing_Listing(BaseModel):
     listing_id: str
+    country : str
+    city : str
     title: Optional[str]=None
     price:Optional[str]=None
     description: Optional[str]=None
