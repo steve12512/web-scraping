@@ -1,10 +1,17 @@
 from services.salaries.scrape_salaries import Software_Engineer_Scraper
 from typing import List, Dict
+from database.software_engineer.models import *
+from database.software_engineer.crud_functions import *
 
 
-class House_Scraping_Orchestrator:
+class Salaries_Scraping_Orchestrator:
 
-    def __init__(self, dictionary_of_places_to_scrape: Dict):
+    def __init__(
+        self,
+        dictionary_of_places_to_scrape: Dict,
+        save_to_db: bool = True,
+        max_listings_to_be_scraped: int = 2,
+    ):
         self.dictionary_of_places_to_scrape = dictionary_of_places_to_scrape
 
     def run(self):
@@ -20,8 +27,10 @@ class House_Scraping_Orchestrator:
             scraper.sign_in_levels_fyi(scraper.driver)
             scraper.enter_salaries_page()
             elements = scraper.scrape_pages_for_fyi(about_to_scrapesecond_page=False)
-            print(len(elements))
-            print('1')
+            df = scraper.edit_listing_columns(elements)
+            sql_models = convert_list_to_sql_model_and_return_a_list_of_models(elements)
+            add_listings_to_db(sql_models)
+            print("1")
 
 
 locations_to_scrape = {
@@ -29,7 +38,7 @@ locations_to_scrape = {
         "UK",
         "London",
         "https://levels.fyi/t/software-engineer/locations/london-metro-area",
-        10,
+        1,
     ]
     # 'Paris Area': 'https://levels.fyi/t/software-engineer/locations/greater-paris-area',
     # 'Madrid Area' :'https://www.levels.fyi/t/software-engineer/locations/madrid-metropolitan-area',
@@ -50,5 +59,5 @@ locations_to_scrape = {
 }
 
 for k, v in locations_to_scrape.items():
-    orchestrator = House_Scraping_Orchestrator({"k": [v[0], v[1], v[2], v[3]]})
+    orchestrator = Salaries_Scraping_Orchestrator({"k": [v[0], v[1], v[2], v[3]]})
     orchestrator.run()

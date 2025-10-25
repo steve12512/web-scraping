@@ -18,6 +18,7 @@ import os
 import json
 import sys
 from services.salaries.logger import get_logger
+from typing import List, Any
 
 
 class Software_Engineer_Scraper:
@@ -30,12 +31,14 @@ class Software_Engineer_Scraper:
         city: str,
         country_url: str,
         max_listings_to_be_scraped: int = 1000,
+        listings_scraped_so_far=0,
     ):
         self.country = country
         self.city = city
         self.country_url = country_url
         self.max_listings_to_be_scraped = max_listings_to_be_scraped
         self.driver = webdriver.Chrome()
+        self.listings_scraped_so_far = listings_scraped_so_far
 
     def get_netherlands_url(self):
         return "https://techpays.com/europe/netherlands"
@@ -238,12 +241,15 @@ class Software_Engineer_Scraper:
         else:
             return False
 
+    def havent_scraped_more_than_the_maximum_number_of_listings(self):
+        return self.listings_scraped_so_far < self.max_listings_to_be_scraped
+
     def scrape_pages_for_fyi(self, about_to_scrapesecond_page: bool):
         self.logger.info("inside the scrape pages for fyi function")
         count = 0
         elements = list()
 
-        while True:
+        while True and self.havent_scraped_more_than_the_maximum_number_of_listings():
             time.sleep(2)
             html = self.driver.page_source
             soup = BeautifulSoup(html, "html.parser")
@@ -251,10 +257,8 @@ class Software_Engineer_Scraper:
 
                 elements_of_this_individual_page = self.scrape_fyi_page(soup)
 
-                # for listing in elements_of_this_individual_page:
-                #     print(listing)
-
                 elements.extend(elements_of_this_individual_page)
+                self.listings_scraped_so_far += len(elements_of_this_individual_page)
                 self.logger.info(
                     f"The elements have been extended by the elements of this individual page {elements_of_this_individual_page}"
                 )
@@ -272,6 +276,20 @@ class Software_Engineer_Scraper:
                 self.logger.error("No more pages or cannot click next.")
 
         return elements
+
+    def edit_listing_columns(self, listings: List[List[Any]]):
+        self.logger.info("Inside the edit listing columns function")
+        try:
+            df = pd.DataFrame(listings)
+            df["city"] = df.iloc[:, 3].apply(lambda x: x.split(",")[0])
+            df["country"] = df.iloc[:, 3].apply(lambda x: x.split(",")[-1])
+            df["salary"] = df.iloc[:, -1].apply(lambda x: x.split("|").split("\\"))
+            print("1")
+            return df
+        except Exception as e:
+            self.logger.error(
+                f"An exception occured whilst trying to edit the columns {e}"
+            )
 
     def go_to_next_fyi_page(self, driver, about_to_scrapesecond_page=None):
         self.logger.info("Inside the go to next fyi page function")
@@ -330,7 +348,9 @@ class Software_Engineer_Scraper:
                 elements_of_this_individual_page.append(
                     [company, levels, yoe, city, total_compensation]
                 )
-            self.logger.info(f"Successfully scraped the elements of this page{company,levels,yoe,total_compensation}")
+            self.logger.info(
+                f"Successfully scraped the elements of this page{company,levels,yoe,total_compensation}"
+            )
         except Exception as e:
             self.logger.error(
                 f"An Exception occured whilst trying to scrape the listings of this individual page {e}"

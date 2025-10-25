@@ -19,11 +19,11 @@ def scrape_houses_and_save_them_to_db(
     max_number_of_listings_to_be_scraped: int = Query(1000, ge=1, le=1000),
     db=Depends(get_db),
 ):
-    '''
+    """
     Note that the least amount of listings that can be scraped is 16, because the evaluation
     of the condition takes place after a page has been scraped(a page contains 2 containers,
     with each container containing 8 listings)
-    '''
+    """
     places_to_be_scraped = {
         "Stockholm": [
             "Stockholm",
@@ -31,8 +31,7 @@ def scrape_houses_and_save_them_to_db(
             "https://housinganywhere.com/s/Stockholm--Sweden",
             "se",
             max_number_of_listings_to_be_scraped,
-        ]
-        ,
+        ],
         "Barcelona": [
             "Barcelona",
             "Spain",
@@ -53,7 +52,8 @@ def scrape_houses_and_save_them_to_db(
             "https://housinganywhere.com/s/Amsterdam--Netherlands",
             "nl",
             max_number_of_listings_to_be_scraped,
-        ]
+        ],
+    }
     houses_orchestrator = House_Scraping_Orchestrator(places_to_be_scraped)
     houses_orchestrator.run()
 
