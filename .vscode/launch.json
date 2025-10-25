@@ -8,7 +8,7 @@
             "name": "Python Debugger: Python File",
             "type": "debugpy",
             "request": "launch",
-            "module": "houses.main",
+            "module": "services.salaries.salaries_scraping_orchestrator",
             "cwd": "${workspaceFolder}"
         }
     ]

@@ -35,6 +35,7 @@ class Software_Engineer_Scraper:
         self.city = city
         self.country_url = country_url
         self.max_listings_to_be_scraped = max_listings_to_be_scraped
+        self.driver = webdriver.Chrome()
 
     def get_netherlands_url(self):
         return "https://techpays.com/europe/netherlands"
@@ -78,6 +79,7 @@ class Software_Engineer_Scraper:
     #     return country
 
     def scrape_pages(self, country_url, max_pages_to_be_parsed=100):
+        self.logger.info('Inside the scrape_pages function')
         driver = webdriver.Chrome()
         driver.get(country_url)
         time.sleep(3)
@@ -215,6 +217,19 @@ class Software_Engineer_Scraper:
         sign_in_button.click()
         time.sleep(5)
 
+    
+    def enter_salaries_page(self):
+        self.logger.info('Inside the enter salaries page function')
+        try:
+            self.driver.get(self.country_url)
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            self.logger.info(f'Successfully entered page {self.country_url}')
+            time.sleep(2)
+        except Exception as e:
+            self.logger.error(f'An error occured while trying to enter page \n {e}')
+
+    
+    
     def scrape_pages_for_lyi(self, driver, is_at_second_page: bool):
         count = 0
         elements = list()

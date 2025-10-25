@@ -16,7 +16,10 @@ class House_Scraping_Orchestrator:
             max_listings_to_be_scraped = values[3]
             
             scraper = Software_Engineer_Scraper(country,city,country_url,max_listings_to_be_scraped)
-            scraper.scrape_pages(country_url)
+            scraper.sign_in_levels_fyi(scraper.driver)
+            scraper.enter_salaries_page()
+            print('1')
+            #scraper.scrape_pages_for_lyi(country_url)
             
 
 
