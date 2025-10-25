@@ -20,7 +20,8 @@ class House_Scraping_Orchestrator:
             scraper.sign_in_levels_fyi(scraper.driver)
             scraper.enter_salaries_page()
             elements = scraper.scrape_pages_for_fyi(about_to_scrapesecond_page=False)
-            print(elements)
+            print(len(elements))
+            print('1')
 
 
 locations_to_scrape = {

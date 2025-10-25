@@ -244,14 +244,15 @@ class Software_Engineer_Scraper:
         elements = list()
 
         while True:
+            time.sleep(2)
             html = self.driver.page_source
             soup = BeautifulSoup(html, "html.parser")
             try:
 
                 elements_of_this_individual_page = self.scrape_fyi_page(soup)
 
-                for listing in elements_of_this_individual_page:
-                    print(listing)
+                # for listing in elements_of_this_individual_page:
+                #     print(listing)
 
                 elements.extend(elements_of_this_individual_page)
                 self.logger.info(
@@ -266,7 +267,6 @@ class Software_Engineer_Scraper:
                 if count == 100:
                     self.logger.info("Reached 100 pages, scraping stops here")
                     break
-                about_to_scrapesecond_page = False
 
             except (NoSuchElementException, ElementClickInterceptedException):
                 self.logger.error("No more pages or cannot click next.")
@@ -286,16 +286,19 @@ class Software_Engineer_Scraper:
             )
         else:
             try:
+                self.logger.info(
+                    "Trying to find the go to next page button for when we arent in the 2nd page scenario"
+                )
                 next_button = driver.find_element(
                     By.XPATH,
                     '//*[@id="__next"]/div/div[2]/div[3]/div[2]/div[2]/table/tfoot/tr/td/div/div[2]/div/button[7]',
                 )
                 next_button.click()
                 self.logger.info(
-                    "Trying to find the go to next page button for when we arent in the 2nd page scenario"
+                    "Clicked on the go to next page button for when we arent in the 2nd page scenario"
                 )
             except NoSuchElementException:
-                self.logger.error("skipped 1 page")
+                self.logger.error("Didnt manage to click on the next page button.")
 
     def scrape_fyi_page(self, soup):
         self.logger.info("Inside the scrape fyi page function")
@@ -327,7 +330,7 @@ class Software_Engineer_Scraper:
                 elements_of_this_individual_page.append(
                     [company, levels, yoe, city, total_compensation]
                 )
-            self.logger.info("Successfully scraped the elements of this page")
+            self.logger.info(f"Successfully scraped the elements of this page{company,levels,yoe,total_compensation}")
         except Exception as e:
             self.logger.error(
                 f"An Exception occured whilst trying to scrape the listings of this individual page {e}"
