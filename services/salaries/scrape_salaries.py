@@ -79,7 +79,7 @@ class Software_Engineer_Scraper:
     #     return country
 
     def scrape_pages(self, country_url, max_pages_to_be_parsed=100):
-        self.logger.info('Inside the scrape_pages function')
+        self.logger.info("Inside the scrape_pages function")
         driver = webdriver.Chrome()
         driver.get(country_url)
         time.sleep(3)
@@ -217,26 +217,29 @@ class Software_Engineer_Scraper:
         sign_in_button.click()
         time.sleep(5)
 
-    
     def enter_salaries_page(self):
-        self.logger.info('Inside the enter salaries page function')
+        self.logger.info("Inside the enter salaries page function")
         try:
             self.driver.get(self.country_url)
-            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            self.logger.info(f'Successfully entered page {self.country_url}')
+            self.driver.execute_script(
+                "window.scrollTo(0, document.body.scrollHeight);"
+            )
+            self.logger.info(f"Successfully entered page {self.country_url}")
             time.sleep(2)
         except Exception as e:
-            self.logger.error(f'An error occured while trying to enter page \n {e}')
+            self.logger.error(f"An error occured while trying to enter page \n {e}")
 
-    def calculate_if_we_are_going_to_click_on_the_second_page(self,count:int):
-        self.logger.info('Inside the calculate if we are going to click on the 2nd page function')
+    def calculate_if_we_are_going_to_click_on_the_second_page(self, count: int):
+        self.logger.info(
+            "Inside the calculate if we are going to click on the 2nd page function"
+        )
         if count == 0:
             return True
         else:
             return False
-    
-    def scrape_pages_for_fyi(self,about_to_scrapesecond_page: bool):
-        self.logger.info('inside the scrape pages for fyi function')
+
+    def scrape_pages_for_fyi(self, about_to_scrapesecond_page: bool):
+        self.logger.info("inside the scrape pages for fyi function")
         count = 0
         elements = list()
 
@@ -244,20 +247,24 @@ class Software_Engineer_Scraper:
             html = self.driver.page_source
             soup = BeautifulSoup(html, "html.parser")
             try:
-                
+
                 elements_of_this_individual_page = self.scrape_fyi_page(soup)
 
                 for listing in elements_of_this_individual_page:
                     print(listing)
 
                 elements.extend(elements_of_this_individual_page)
-                self.logger.info(f'The elements have been extended by the elements of this individual page {elements_of_this_individual_page}')
-                about_to_scrapesecond_page = self.calculate_if_we_are_going_to_click_on_the_second_page(count)
+                self.logger.info(
+                    f"The elements have been extended by the elements of this individual page {elements_of_this_individual_page}"
+                )
+                about_to_scrapesecond_page = (
+                    self.calculate_if_we_are_going_to_click_on_the_second_page(count)
+                )
                 self.go_to_next_fyi_page(self.driver, about_to_scrapesecond_page)
-                #self.logger.info('Successfully went to the next page')
+                # self.logger.info('Successfully went to the next page')
                 count += 1
                 if count == 100:
-                    self.logger.info('Reached 100 pages, scraping stops here')
+                    self.logger.info("Reached 100 pages, scraping stops here")
                     break
                 about_to_scrapesecond_page = False
 
@@ -267,14 +274,16 @@ class Software_Engineer_Scraper:
         return elements
 
     def go_to_next_fyi_page(self, driver, about_to_scrapesecond_page=None):
-        self.logger.info('Inside the go to next fyi page function')
+        self.logger.info("Inside the go to next fyi page function")
         if about_to_scrapesecond_page:
             WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable(
                     (By.XPATH, '//button[normalize-space(text())="2"]')
                 )
             ).click()
-            self.logger.info('Clicked the next button specific to the "is at second page" scenario')
+            self.logger.info(
+                'Clicked the next button specific to the "is at second page" scenario'
+            )
         else:
             try:
                 next_button = driver.find_element(
@@ -282,12 +291,14 @@ class Software_Engineer_Scraper:
                     '//*[@id="__next"]/div/div[2]/div[3]/div[2]/div[2]/table/tfoot/tr/td/div/div[2]/div/button[7]',
                 )
                 next_button.click()
-                self.logger.info('Trying to find the go to next page button for when we arent in the 2nd page scenario')
+                self.logger.info(
+                    "Trying to find the go to next page button for when we arent in the 2nd page scenario"
+                )
             except NoSuchElementException:
                 self.logger.error("skipped 1 page")
 
-    def scrape_fyi_page(self,soup):
-        self.logger.info('Inside the scrape fyi page function')
+    def scrape_fyi_page(self, soup):
+        self.logger.info("Inside the scrape fyi page function")
         try:
             rows = soup.find_all("tr", class_="salary-row_collapsedSalaryRow__o3k4j")
             elements_of_this_individual_page = []
@@ -316,9 +327,11 @@ class Software_Engineer_Scraper:
                 elements_of_this_individual_page.append(
                     [company, levels, yoe, city, total_compensation]
                 )
-            self.logger.info('Successfully scraped the elements of this page')
+            self.logger.info("Successfully scraped the elements of this page")
         except Exception as e:
-            self.logger.error(f'An Exception occured whilst trying to scrape the listings of this individual page {e}')
+            self.logger.error(
+                f"An Exception occured whilst trying to scrape the listings of this individual page {e}"
+            )
         finally:
             return elements_of_this_individual_page
 

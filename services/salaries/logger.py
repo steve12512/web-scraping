@@ -15,7 +15,7 @@ def get_logger():
                 "WARNING": "yellow",
                 "ERROR": "red",
                 "CRITICAL": "bold_red",
-            }
+            },
         )
         handler.setFormatter(formatter)
         logger.addHandler(handler)

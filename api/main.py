@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-#from database.crud_functions import write_dataframes_to_db
+
+# from database.crud_functions import write_dataframes_to_db
 from .houses.house_router import house_router
 
 # @app.get('/')
@@ -18,7 +19,6 @@ from .houses.house_router import house_router
 #     return {'quantity' : quantity}
 
 # print('1')
-
 
 
 app = FastAPI()
