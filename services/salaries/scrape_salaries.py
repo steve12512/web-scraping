@@ -198,10 +198,10 @@ class Software_Engineer_Scraper:
 
     def sign_in_levels_fyi(self, driver):
         driver.get("https://www.levels.fyi/login?screen=signIn&from=navbar_buttons")
-        email_input = driver.find_element(
+        email_input = self.driver.find_element(
             By.XPATH, '//input[@placeholder="Email Address"]'
         )
-        password_input = driver.find_element(
+        password_input = self.driver.find_element(
             By.CSS_SELECTOR, 'input[placeholder="Password"]'
         )
 
@@ -228,43 +228,53 @@ class Software_Engineer_Scraper:
         except Exception as e:
             self.logger.error(f'An error occured while trying to enter page \n {e}')
 
+    def calculate_if_we_are_going_to_click_on_the_second_page(self,count:int):
+        self.logger.info('Inside the calculate if we are going to click on the 2nd page function')
+        if count == 0:
+            return True
+        else:
+            return False
     
-    
-    def scrape_pages_for_lyi(self, driver, is_at_second_page: bool):
+    def scrape_pages_for_fyi(self,about_to_scrapesecond_page: bool):
+        self.logger.info('inside the scrape pages for fyi function')
         count = 0
         elements = list()
 
         while True:
-            html = driver.page_source
+            html = self.driver.page_source
             soup = BeautifulSoup(html, "html.parser")
             try:
-
-                elements_of_this_individual_page = self.scrape_lyi_page(soup)
+                
+                elements_of_this_individual_page = self.scrape_fyi_page(soup)
 
                 for listing in elements_of_this_individual_page:
                     print(listing)
 
                 elements.extend(elements_of_this_individual_page)
-
-                self.go_to_next_lyi_page(driver, is_at_second_page)
-
+                self.logger.info(f'The elements have been extended by the elements of this individual page {elements_of_this_individual_page}')
+                about_to_scrapesecond_page = self.calculate_if_we_are_going_to_click_on_the_second_page(count)
+                self.go_to_next_fyi_page(self.driver, about_to_scrapesecond_page)
+                #self.logger.info('Successfully went to the next page')
                 count += 1
                 if count == 100:
+                    self.logger.info('Reached 100 pages, scraping stops here')
                     break
-                is_at_second_page = False
+                about_to_scrapesecond_page = False
 
             except (NoSuchElementException, ElementClickInterceptedException):
-                print("No more pages or cannot click next.")
+                self.logger.error("No more pages or cannot click next.")
 
         return elements
 
-    def go_to_next_lyi_page(self, driver, is_at_second_page=None):
-        if is_at_second_page:
+    def go_to_next_fyi_page(self, driver, about_to_scrapesecond_page=None):
+        self.logger.info('Inside the go to next fyi page function')
+        if about_to_scrapesecond_page:
             WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable(
                     (By.XPATH, '//button[normalize-space(text())="2"]')
                 )
             ).click()
+            self.logger.info('Clicked the next button specific to the "is at second page" scenario')
         else:
             try:
                 next_button = driver.find_element(
@@ -272,40 +282,45 @@ class Software_Engineer_Scraper:
                     '//*[@id="__next"]/div/div[2]/div[3]/div[2]/div[2]/table/tfoot/tr/td/div/div[2]/div/button[7]',
                 )
                 next_button.click()
+                self.logger.info('Trying to find the go to next page button for when we arent in the 2nd page scenario')
             except NoSuchElementException:
-                print("skipped 1 page")
+                self.logger.error("skipped 1 page")
 
-    def scrape_lyi_page(soup):
+    def scrape_fyi_page(self,soup):
+        self.logger.info('Inside the scrape fyi page function')
+        try:
+            rows = soup.find_all("tr", class_="salary-row_collapsedSalaryRow__o3k4j")
+            elements_of_this_individual_page = []
 
-        rows = soup.find_all("tr", class_="salary-row_collapsedSalaryRow__o3k4j")
-        elements_of_this_individual_page = []
+            for row in rows:
+                company_tag = row.find(class_="salary-row_companyName__8K8vS")
+                company = company_tag.get_text(strip=True) if company_tag else "N/A"
 
-        for row in rows:
-            company_tag = row.find(class_="salary-row_companyName__8K8vS")
-            company = company_tag.get_text(strip=True) if company_tag else "N/A"
+                levels_tag = row.find(class_="salary-row_levelName__VZtUC")
 
-            levels_tag = row.find(class_="salary-row_levelName__VZtUC")
+                levels = levels_tag.get_text(strip=True) if levels_tag else "N/A"
 
-            levels = levels_tag.get_text(strip=True) if levels_tag else "N/A"
+                yoe_tag = row.find("p", class_="css-4g68tt")
+                yoe = yoe_tag.get_text(strip=True) if yoe_tag else "N/A"
 
-            yoe_tag = row.find("p", class_="css-4g68tt")
-            yoe = yoe_tag.get_text(strip=True) if yoe_tag else "N/A"
+                total_compensation_tags = row.find_all("span", class_="css-b4wlzm")
+                total_compensation = (
+                    total_compensation_tags[2].get_text(strip=True)
+                    if total_compensation_tags
+                    else "N/A"
+                )
 
-            total_compensation_tags = row.find_all("span", class_="css-b4wlzm")
-            total_compensation = (
-                total_compensation_tags[2].get_text(strip=True)
-                if total_compensation_tags
-                else "N/A"
-            )
+                city_tag = row.find(class_="css-xlmjpr")
+                city = city_tag.get_text(strip=True) if city_tag else "N/A"
 
-            city_tag = row.find(class_="css-xlmjpr")
-            city = city_tag.get_text(strip=True) if city_tag else "N/A"
-
-            elements_of_this_individual_page.append(
-                [company, levels, yoe, city, total_compensation]
-            )
-
-        return elements_of_this_individual_page
+                elements_of_this_individual_page.append(
+                    [company, levels, yoe, city, total_compensation]
+                )
+            self.logger.info('Successfully scraped the elements of this page')
+        except Exception as e:
+            self.logger.error(f'An Exception occured whilst trying to scrape the listings of this individual page {e}')
+        finally:
+            return elements_of_this_individual_page
 
     def parse_list_to_df(elements: list):
         rows = []

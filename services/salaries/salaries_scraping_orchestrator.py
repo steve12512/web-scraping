@@ -18,8 +18,8 @@ class House_Scraping_Orchestrator:
             scraper = Software_Engineer_Scraper(country,city,country_url,max_listings_to_be_scraped)
             scraper.sign_in_levels_fyi(scraper.driver)
             scraper.enter_salaries_page()
-            print('1')
-            #scraper.scrape_pages_for_lyi(country_url)
+            elements =scraper.scrape_pages_for_fyi(about_to_scrapesecond_page=False)
+            print(elements)
             
 
 
