@@ -3,12 +3,12 @@ import pandas as pd
 from typing import Type
 from database.software_engineer.models import (
     Software_Engineer,
-    Software_Engineer_Levels_Fyi,
+    software_engineer_salaries,
 )
 from sqlmodel import Field, SQLModel, Session, create_engine, select
 from sqlalchemy import text
 from services.salaries.logger import get_logger
-from database.software_engineer.models import Software_Engineer_Levels_Fyi
+from database.software_engineer.models import software_engineer_salaries
 from typing import List
 import os
 
@@ -18,6 +18,8 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 logger.info("Trying to create the engine")
 if DATABASE_URL is not None:
     engine = create_engine(DATABASE_URL, echo=True)
+    logger.info("Created the database engine")
+    SQLModel.metadata.create_all(engine)
 else:
     logger.error("Failed to create the engine")
 
@@ -47,29 +49,28 @@ def get_db():
         yield session
 
 
-# ['Datadog', 'Senior Software Engineer', '10  yrs', 'London, EN, United Kingdom | 31 minutes ago', '10,3\xa0χιλ. | 6,2\xa0χιλ. | N/A']
-def convert_list_to_sql_model_and_return_a_list_of_models(listings: List):
+def convert_list_to_sql_model_and_return_a_list_of_models(df, country: str, city: str):
     logger.info("Inside the convert list to sql model function")
-    sql_models = []
-    for listing in listings:
-        try:
-            sql_model = Software_Engineer_Levels_Fyi(
-                company_name=listing[0],
-                title=listing[1],
-                years_of_experience=listing[2],
-                city=listing[4],
-                salary=float(listing[5]),
-                country=listing[6],
+    try:
+        sql_models = [
+            software_engineer_salaries(
+                company_name=row[0],
+                title=row[1],
+                years_of_experience=row[2],
+                city=city,
+                salary=float(row[6]),
+                country=country,
             )
-            sql_models.append(sql_model)
-        except Exception as e:
-            logger.error(
-                f"An exception occured whilst trying to convert listing {listing} into an sql model object. \n {e}"
-            )
-    return sql_models
+            for row in df.iter_rows()
+        ]
+        return sql_models
+    except Exception as e:
+        logger.error(
+            f"An exception occured whilst trying to convert listing into an sql model object. \n {e}"
+        )
 
 
-def add_listings_to_db(models: List[Software_Engineer_Levels_Fyi]):
+def add_listings_to_db(models: List[software_engineer_salaries]):
     logger.info(
         "Inside the add listings to db function for the database.software engineers crud functions directory"
     )
@@ -77,6 +78,7 @@ def add_listings_to_db(models: List[Software_Engineer_Levels_Fyi]):
         session = next(get_db())
         logger.info("Successfully got the session object")
         session.add_all(models)
+        session.commit()
         logger.info("Successfully inserted the objects to the db")
     except Exception as e:
         logger.error(
