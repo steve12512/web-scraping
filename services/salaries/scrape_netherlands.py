@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 os.chdir("C:/Users/steve/web-scraping/database")
 
 from crud_functions import write_dataframes_to_db, df_to_sql
-from models import Software_Engineer_Levels_Fyi
+from models import software_engineer_salaries
 from sqlalchemy import Engine
 
 salaries_url = "https://www.levels.fyi/t/software-engineer/locations/netherlands"
@@ -63,6 +63,6 @@ df["country"] = "Netherlands"
 df = df.drop(columns="netherlands")
 df.head(10)
 
-df_to_sql(df, "software_engineer_levels_fyi")
+df_to_sql(df, "software_engineer_salaries")
 
 driver.close()

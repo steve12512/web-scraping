@@ -19,6 +19,9 @@ import json
 import sys
 from services.salaries.logger import get_logger
 from typing import List, Any
+import polars as pl
+from polars import col
+import numpy as np
 
 
 class Software_Engineer_Scraper:
@@ -277,19 +280,44 @@ class Software_Engineer_Scraper:
 
         return elements
 
-    def edit_listing_columns(self, listings: List[List[Any]]):
+    def edit_listing_columns(self, listings):
+        """
+        Returns a Polars Dataframe
+        """
         self.logger.info("Inside the edit listing columns function")
         try:
-            df = pd.DataFrame(listings)
-            df["city"] = df.iloc[:, 3].apply(lambda x: x.split(",")[0])
-            df["country"] = df.iloc[:, 3].apply(lambda x: x.split(",")[-1])
-            df["salary"] = df.iloc[:, -1].apply(lambda x: x.split("|").split("\\"))
-            print("1")
-            return df
+            listings = np.array(listings).reshape(-1, 5).tolist()
+            df = pl.DataFrame(
+                listings,
+                [
+                    "company_name",
+                    "title",
+                    "years_of_experience",
+                    "city_and_country",
+                    "total_compensation",
+                ],
+            )
+            df = df.rename({"city_and_country": "city"})
+            df = df.with_columns(pl.lit(self.city).alias("city"))
+            df = df.with_columns(pl.lit(self.country).alias("country"))
+            df = df.with_columns(
+                [
+                    col("total_compensation")
+                    .cast(pl.Utf8)
+                    .str.extract(r"(\d+,\d+)")
+                    .str.replace(",", ".").cast(pl.Float64)
+                    .alias("salary")
+                ]
+            )
+            mean_salary = df["salary"].mean()
+            df = df.with_columns(pl.col("salary").fill_null(mean_salary))
+            self.logger.info("Polars dataframe created successfully")
         except Exception as e:
             self.logger.error(
                 f"An exception occured whilst trying to edit the columns {e}"
             )
+        finally:
+            return df
 
     def go_to_next_fyi_page(self, driver, about_to_scrapesecond_page=None):
         self.logger.info("Inside the go to next fyi page function")

@@ -27,8 +27,9 @@ class Salaries_Scraping_Orchestrator:
             scraper.sign_in_levels_fyi(scraper.driver)
             scraper.enter_salaries_page()
             elements = scraper.scrape_pages_for_fyi(about_to_scrapesecond_page=False)
+            print(elements[0])
             df = scraper.edit_listing_columns(elements)
-            sql_models = convert_list_to_sql_model_and_return_a_list_of_models(elements)
+            sql_models = convert_list_to_sql_model_and_return_a_list_of_models(df,country,city)
             add_listings_to_db(sql_models)
             print("1")
 

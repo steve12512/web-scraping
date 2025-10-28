@@ -18,8 +18,8 @@ class Software_Engineer(SQLModel, table=True):
     country: str
 
 
-class Software_Engineer_Levels_Fyi(SQLModel, table=True):
-    # __tablename__ = "software_engineer_levels_fyi"
+class software_engineer_salaries(SQLModel, table=True):
+    __tablename__ = "software_engineer_salaries"
 
     id: int | None = Field(default=None, primary_key=True)
     company_name: str | None = None
@@ -29,3 +29,5 @@ class Software_Engineer_Levels_Fyi(SQLModel, table=True):
     total_compensation: str | None = None
     salary: float | None = None
     country: str | None = None
+
+
