@@ -36,7 +36,7 @@ class Salaries_Scraping_Orchestrator:
 
 locations_to_scrape = {
     "London Area": [
-        "UK",
+        "United Kingdom",
         "London",
         "https://levels.fyi/t/software-engineer/locations/london-metro-area",
         1,

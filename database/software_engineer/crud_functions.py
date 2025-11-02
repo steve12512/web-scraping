@@ -1,3 +1,6 @@
+import argparse
+from pathlib import Path
+from dotenv import load_dotenv
 from sqlmodel import Field, SQLModel, Session, create_engine, select
 import pandas as pd
 from typing import Type
@@ -6,22 +9,23 @@ from database.software_engineer.models import (
     software_engineer_salaries,
 )
 from sqlmodel import Field, SQLModel, Session, create_engine, select
-from sqlalchemy import text
+from sqlalchemy import func, text
 from services.salaries.logger import get_logger
 from database.software_engineer.models import software_engineer_salaries
 from typing import List
 import os
 
 logger = get_logger()
+env_path = Path(__file__).resolve().parents[2] / ".env"
+load_dotenv(dotenv_path=env_path)
 DATABASE_URL = os.getenv("DATABASE_URL")
-
 logger.info("Trying to create the engine")
-if DATABASE_URL is not None:
+try:
     engine = create_engine(DATABASE_URL, echo=True)
     logger.info("Created the database engine")
-    SQLModel.metadata.create_all(engine)
-else:
-    logger.error("Failed to create the engine")
+    # SQLModel.metadata.create_all(engine)
+except Exception as e:
+    logger.error(f"Failed to create the engine. {e}")
 
 
 # def write_dataframes_to_db(df: pd.DataFrame, model: Type[SQLModel]):
@@ -86,25 +90,123 @@ def add_listings_to_db(models: List[software_engineer_salaries]):
         )
 
 
-# def df_to_sql(df, table):
-#     engine = get_engine()
-#     df.to_sql(table, con=engine, if_exists="append", index=False)
+def get_all_salaries():
+    logger.info("Inside the get_all_salaries function")
+    with Session(engine) as session:
+        statement = select(software_engineer_salaries)
+        result = session.exec(statement).all()
+        logger.info(f"Successfully ran query. The results are; {result}")
 
 
-# def find_entry(id: str):
-#     engine = create_engine("postgresql://postgres:postgres@localhost:5432/postgres")
-#     with Session(engine) as session:
-#         statement = select(Software_Engineer).where(Software_Engineer.id == 0)
-#         result = session.exec(statement).first()
-#         print(result)
+def find_country_salaries(country: str):
+    logger.info("Inside the find country salaries function")
+    with Session(engine) as session:
+        statement = select(software_engineer_salaries).where(
+            software_engineer_salaries.country == country
+        )
+        result = session.exec(statement).all()
+        logger.info(f"Successfully ran query. The results are; {result}")
 
 
-# def execute_query(df: pd.DataFrame, query: str, engine) -> list | None:
+def find_min_max_avg_country_salaries(country: str):
+    logger.info("Inside the find find_min_max_avg_country_salaries function")
+    with Session(engine) as session:
+        statement = (
+            select(
+                func.min(software_engineer_salaries.salary),
+                func.avg(software_engineer_salaries.salary),
+                func.max(software_engineer_salaries.salary),
+            )
+            .where(software_engineer_salaries.country == country)
+            .group_by(software_engineer_salaries.country)
+        )
+        result = session.exec(statement).first()
+        logger.info(f"Successfully ran query. The results are; {result}")
 
-#     with Session(engine) as session:
-#         result = session.exec(text(query))
-#         rows = result.all()
 
-#     for row in rows:
-#         print(row)
-#     return rows
+def find_min_max_avg_country_salaries_for_level(country: str, level: str):
+    """
+    level should be Senior,Junior, Mid
+    """
+    logger.info("Inside the find find_min_max_avg_country_salaries_for_level function")
+    with Session(engine) as session:
+        statement = (
+            select(
+                func.min(software_engineer_salaries.salary).label("Minimum Salary"),
+                func.avg(software_engineer_salaries.salary).label("Average Salary"),
+                func.max(software_engineer_salaries.salary).label("Maximum Salary"),
+            )
+            .where(
+                (software_engineer_salaries.country == country)
+                & (software_engineer_salaries.title.contains(level))
+            )
+            .group_by(software_engineer_salaries.country)
+            .limit(50)
+        )
+        result = session.exec(statement).all()
+        logger.info(f"Successfully ran query. The results are; {result}")
+
+
+def find_most_offerings_per_country_salaries_for_level(
+    country: str, level: str | None = None
+):
+    """
+    level should be Senior,Junior, Mid
+    """
+    logger.info(
+        "Inside the find find_most_offerings_per_country_salaries_for_level function"
+    )
+    with Session(engine) as session:
+        if level == None:
+            statement = calculate_positions_without_level(country)
+        else:
+            statement = calculate_positions_with_level(country, level)
+        result = session.exec(statement).all()
+        logger.info(f"Successfully ran query. The results are; {result}")
+
+
+def calculate_positions_without_level(country: str):
+    return (
+        select(
+            func.count(software_engineer_salaries.company_name).label(
+                "Company Hirings"
+            ),
+            software_engineer_salaries.company_name,
+        )
+        .where((software_engineer_salaries.country == country))
+        .group_by(
+            software_engineer_salaries.country,
+            software_engineer_salaries.company_name,
+        )
+        .order_by(func.count(software_engineer_salaries.company_name).desc())
+        .limit(50)
+    )
+
+
+def calculate_positions_with_level(country: str, level: str):
+    return (
+        select(
+            func.count(software_engineer_salaries.company_name).label(
+                "Company Hirings"
+            ),
+            software_engineer_salaries.company_name,
+        )
+        .where(
+            (software_engineer_salaries.country == country)
+            & (software_engineer_salaries.title.contains(level))
+        )
+        .group_by(
+            software_engineer_salaries.country,
+            software_engineer_salaries.company_name,
+        )
+        .order_by("Company Hirings")
+        .limit(50)
+    )
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("country", help="Country to query salaries for")
+    parser.add_argument("level", help="Job level to filter by")
+    args = parser.parse_args()
+    find_most_offerings_per_country_salaries_for_level(args.country, args.level)
