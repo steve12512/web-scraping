@@ -92,62 +92,110 @@ def add_listings_to_db(models: List[software_engineer_salaries]):
 
 def get_all_salaries(limit: int | None = 500):
     logger.info("Inside the get_all_salaries function")
-    with Session(engine) as session:
-        statement = select(software_engineer_salaries).limit(limit)
-        result = session.exec(statement).all()
-        logger.info(f"Successfully ran query. The results are; {result}")
-        return result
+    try:
+        with Session(engine) as session:
+            statement = select(software_engineer_salaries).limit(limit)
+            result = session.exec(statement).all()
+            logger.info(f"Successfully ran query. The results are; {result}")
+            return result
+    except Exception as e:
+        logger.error("An exception occured inside the get_all_salaries {e}")
 
 
 def find_country_salaries(country: str, limit: int | None = 500):
     logger.info("Inside the find country salaries function")
-    with Session(engine) as session:
-        statement = (
-            select(software_engineer_salaries)
-            .where(software_engineer_salaries.country == country)
-            .limit(limit)
+    try:
+        with Session(engine) as session:
+            statement = (
+                select(software_engineer_salaries)
+                .where(software_engineer_salaries.country == country)
+                .limit(limit)
+            )
+            result = session.exec(statement).all()
+            logger.info(f"Successfully ran query. The results are; {result}")
+            return result
+    except Exception as e:
+        logger.error(
+            "An exception occured inside the find_country_salaries function {e}"
         )
-        result = session.exec(statement).all()
-        logger.info(f"Successfully ran query. The results are; {result}")
-        return result
 
-def find_min_max_avg_country_salaries(country: str):
+
+def find_min_max_avg_country_salaries(country: str, level: str | None = None):
     logger.info("Inside the find find_min_max_avg_country_salaries function")
-    with Session(engine) as session:
-        statement = (
-            select(
-                func.min(software_engineer_salaries.salary),
-                func.avg(software_engineer_salaries.salary),
-                func.max(software_engineer_salaries.salary),
-            )
-            .where(software_engineer_salaries.country == country)
-            .group_by(software_engineer_salaries.country)
+    try:
+        with Session(engine) as session:
+            if level is not None:
+                statement = calculate_min_max_avg_country_salaries_with_level(
+                    country, level
+                )
+            else:
+                statement = calculate_min_max_avg_country_salaries_without_level(
+                    country
+                )
+            result = session.exec(statement).first()
+            logger.info(f"Successfully ran query. The results are; {result}")
+        return result
+    except Exception as e:
+        logger.error(
+            "An exception occured inside the find_min_max_avg_country_salaries function {e}"
         )
-        result = session.exec(statement).first()
-        logger.info(f"Successfully ran query. The results are; {result}")
 
 
-def find_min_max_avg_country_salaries_for_level(country: str, level: str):
-    """
-    level should be Senior,Junior, Mid
-    """
-    logger.info("Inside the find find_min_max_avg_country_salaries_for_level function")
-    with Session(engine) as session:
-        statement = (
-            select(
-                func.min(software_engineer_salaries.salary).label("Minimum Salary"),
-                func.avg(software_engineer_salaries.salary).label("Average Salary"),
-                func.max(software_engineer_salaries.salary).label("Maximum Salary"),
-            )
-            .where(
-                (software_engineer_salaries.country == country)
-                & (software_engineer_salaries.title.contains(level))
-            )
-            .group_by(software_engineer_salaries.country)
-            .limit(50)
+def calculate_min_max_avg_country_salaries_without_level(country: str):
+    return (
+        select(
+            func.min(software_engineer_salaries.salary),
+            func.avg(software_engineer_salaries.salary),
+            func.max(software_engineer_salaries.salary),
         )
-        result = session.exec(statement).all()
-        logger.info(f"Successfully ran query. The results are; {result}")
+        .where(software_engineer_salaries.country == country)
+        .group_by(software_engineer_salaries.country)
+    )
+
+
+def calculate_min_max_avg_country_salaries_with_level(country: str, level: str):
+    return (
+        select(
+            func.min(software_engineer_salaries.salary).label("Minimum Salary"),
+            func.avg(software_engineer_salaries.salary).label("Average Salary"),
+            func.max(software_engineer_salaries.salary).label("Maximum Salary"),
+        )
+        .where(
+            (software_engineer_salaries.country == country)
+            & (software_engineer_salaries.title.contains(level))
+        )
+        .group_by(software_engineer_salaries.country)
+        .limit(50)
+    )
+
+
+# def find_min_max_avg_country_salaries_for_level(country: str, level: str):
+#     """
+#     level should be Senior,Junior, Mid
+#     """
+#     logger.info("Inside the find find_min_max_avg_country_salaries_for_level function")
+#     try:
+#         with Session(engine) as session:
+#             statement = (
+#                 select(
+#                     func.min(software_engineer_salaries.salary).label("Minimum Salary"),
+#                     func.avg(software_engineer_salaries.salary).label("Average Salary"),
+#                     func.max(software_engineer_salaries.salary).label("Maximum Salary"),
+#                 )
+#                 .where(
+#                     (software_engineer_salaries.country == country)
+#                     & (software_engineer_salaries.title.contains(level))
+#                 )
+#                 .group_by(software_engineer_salaries.country)
+#                 .limit(50)
+#             )
+#             result = session.exec(statement).all()
+#             logger.info(f"Successfully ran query. The results are; {result}")
+#             return result
+#     except Exception as e:
+#         logger.error(
+#             "An Exception occured insidee the find_min_max_avg_country_salaries_for_level function {e}"
+#         )
 
 
 def find_most_offerings_per_country_salaries_for_level(
@@ -159,13 +207,19 @@ def find_most_offerings_per_country_salaries_for_level(
     logger.info(
         "Inside the find find_most_offerings_per_country_salaries_for_level function"
     )
-    with Session(engine) as session:
-        if level == None:
-            statement = calculate_positions_without_level(country)
-        else:
-            statement = calculate_positions_with_level(country, level)
-        result = session.exec(statement).all()
-        logger.info(f"Successfully ran query. The results are; {result}")
+    try:
+        with Session(engine) as session:
+            if level == None:
+                statement = calculate_positions_without_level(country)
+            else:
+                statement = calculate_positions_with_level(country, level)
+            result = session.exec(statement).all()
+            logger.info(f"Successfully ran query. The results are; {result}")
+            return result
+    except Exception as e:
+        logger.error(
+            "An exception occured inside the find_most_offerings_per_country_salaries_for_level function {e}"
+        )
 
 
 def calculate_positions_without_level(country: str):
