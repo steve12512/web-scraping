@@ -90,23 +90,26 @@ def add_listings_to_db(models: List[software_engineer_salaries]):
         )
 
 
-def get_all_salaries():
+def get_all_salaries(limit: int | None = 500):
     logger.info("Inside the get_all_salaries function")
     with Session(engine) as session:
-        statement = select(software_engineer_salaries)
+        statement = select(software_engineer_salaries).limit(limit)
         result = session.exec(statement).all()
         logger.info(f"Successfully ran query. The results are; {result}")
+        return result
 
 
-def find_country_salaries(country: str):
+def find_country_salaries(country: str, limit: int | None = 500):
     logger.info("Inside the find country salaries function")
     with Session(engine) as session:
-        statement = select(software_engineer_salaries).where(
-            software_engineer_salaries.country == country
+        statement = (
+            select(software_engineer_salaries)
+            .where(software_engineer_salaries.country == country)
+            .limit(limit)
         )
         result = session.exec(statement).all()
         logger.info(f"Successfully ran query. The results are; {result}")
-
+        return result
 
 def find_min_max_avg_country_salaries(country: str):
     logger.info("Inside the find find_min_max_avg_country_salaries function")
