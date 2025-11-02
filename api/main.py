@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 # from database.crud_functions import write_dataframes_to_db
 from .houses.house_router import house_router
-
+from .software_engineer.salaries_router import salaries_router
 # @app.get('/')
 # async def read_root():
 #     netherlands_url = salaries_functions.get_netherlands_url()
@@ -23,3 +23,4 @@ from .houses.house_router import house_router
 
 app = FastAPI()
 app.include_router(house_router)
+app.include_router(salaries_router)
