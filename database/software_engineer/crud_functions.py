@@ -102,7 +102,7 @@ def get_all_salaries(limit: int | None = 500):
         logger.error("An exception occured inside the get_all_salaries {e}")
 
 
-def find_country_salaries(country: str, limit: int | None = 500):
+def get_country_salaries(country: str, limit: int | None = 500):
     logger.info("Inside the find country salaries function")
     try:
         with Session(engine) as session:
@@ -169,35 +169,6 @@ def calculate_min_max_avg_country_salaries_with_level(country: str, level: str):
     )
 
 
-# def find_min_max_avg_country_salaries_for_level(country: str, level: str):
-#     """
-#     level should be Senior,Junior, Mid
-#     """
-#     logger.info("Inside the find find_min_max_avg_country_salaries_for_level function")
-#     try:
-#         with Session(engine) as session:
-#             statement = (
-#                 select(
-#                     func.min(software_engineer_salaries.salary).label("Minimum Salary"),
-#                     func.avg(software_engineer_salaries.salary).label("Average Salary"),
-#                     func.max(software_engineer_salaries.salary).label("Maximum Salary"),
-#                 )
-#                 .where(
-#                     (software_engineer_salaries.country == country)
-#                     & (software_engineer_salaries.title.contains(level))
-#                 )
-#                 .group_by(software_engineer_salaries.country)
-#                 .limit(50)
-#             )
-#             result = session.exec(statement).all()
-#             logger.info(f"Successfully ran query. The results are; {result}")
-#             return result
-#     except Exception as e:
-#         logger.error(
-#             "An Exception occured insidee the find_min_max_avg_country_salaries_for_level function {e}"
-#         )
-
-
 def find_most_offerings_per_country_salaries_for_level(
     country: str, level: str | None = None
 ):
@@ -256,7 +227,7 @@ def calculate_positions_with_level(country: str, level: str):
             software_engineer_salaries.country,
             software_engineer_salaries.company_name,
         )
-        .order_by("Company Hirings")
+        .order_by(func.count(software_engineer_salaries.company_name).desc())
         .limit(50)
     )
 
