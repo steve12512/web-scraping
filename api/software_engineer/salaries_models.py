@@ -10,3 +10,14 @@ class Software_Engineer_Salaries(BaseModel):
     total_compensation: Optional[str]
     salary: Optional[float]
     country: Optional[str]
+
+
+class Locations(BaseModel):
+    country: str
+    city: str
+    url: str
+    max_number_of_listings_to_be_scraped: int
+
+
+class list_of_places_to_be_scraped(BaseModel):
+    List[Locations]
