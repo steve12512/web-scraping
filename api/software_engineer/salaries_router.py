@@ -1,15 +1,28 @@
 from typing import List, Optional
 from typing_extensions import Literal
 from fastapi import APIRouter
-from .salaries_models import Software_Engineer_Salaries
+from .salaries_models import *
 from database.software_engineer.crud_functions import *
 from json import dumps
-
+from services.salaries.salaries_scraping_orchestrator import Salaries_Scraping_Orchestrator
 
 salaries_router = APIRouter(prefix="/salaries", tags=["Salaries"])
 
 
-@salaries_router.get("/", response_model=List[Software_Engineer_Salaries])
+
+@salaries_router.post('/scrape_salaries', response_model=list_of_places_to_be_scraped)
+def scrape_software_engineer_salaries():
+    scraper = Salaries_Scraping_Orchestrator()
+    pass
+# locations_to_scrape = {
+#     "London Area": [
+#         "United Kingdom",
+#         "London",
+#         "https://levels.fyi/t/software-engineer/locations/london-metro-area",
+#         1,
+#     ]
+
+@salaries_router.get("/get_salaries", response_model=List[Software_Engineer_Salaries])
 def get_salaries(limit: int | None):
     salaries = get_all_salaries(limit)
     return salaries
