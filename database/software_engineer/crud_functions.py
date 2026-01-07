@@ -232,6 +232,43 @@ def calculate_positions_with_level(country: str, level: str):
     )
 
 
+def calculate_city_salaries(city: str, limit: int | None = 500):
+    logger.info("Inside the get_city_salaries function")
+    try:
+        with Session(engine) as session:
+            statement = (
+                select(software_engineer_salaries)
+                .where(city == software_engineer_salaries.city)
+                .limit(limit)
+            )
+            result = session.exec(statement).all()
+            logger.info(f"Successfully ran query. The results are; {result}")
+            return result
+    except Exception as e:
+        logger.error("An exception occured inside the get_all_salaries {e}")
+
+
+def calculate_city_min_avg_max_salaries(city: str):
+    logger.info("Inside the calculate_city_min_avg_max_salaries function")
+    try:
+        with Session(engine) as session:
+            statement = select(
+                func.min(software_engineer_salaries.salary).label("minimum_salary"),
+                func.avg(software_engineer_salaries.salary).label("average_salary"),
+                func.max(software_engineer_salaries.salary).label("maximum_salary"),
+            ).where(software_engineer_salaries.city == city).group_by(software_engineer_salaries.city)
+
+            result = session.exec(statement).first()
+            logger.info(f"Successfully ran query. The results are: {result}")
+            return result
+    except Exception as e:
+        logger.error(
+            f"An exception occurred inside calculate_city_min_avg_max_salaries: {e}",
+            exc_info=True,
+        )
+        return None
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("country", help="Country to query salaries for")

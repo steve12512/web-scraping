@@ -5,6 +5,9 @@ from .salaries_models import *
 from database.software_engineer.crud_functions import *
 from json import dumps
 from services.salaries.salaries_scraping_orchestrator import Salaries_Scraping_Orchestrator
+from api.enums.city import City
+from api.enums.country import Country
+
 
 salaries_router = APIRouter(prefix="/salaries", tags=["Salaries"])
 
@@ -30,20 +33,7 @@ def get_salaries(limit: int | None):
 
 @salaries_router.get("/{country}", response_model=List[Software_Engineer_Salaries])
 def get_country_salaries(
-    country: Literal[
-        "Sweden",
-        "Norway",
-        "France",
-        "Estonia",
-        "United Kingdom",
-        "Netherlands",
-        "Spain",
-        "Austria",
-        "London",
-        "Poland",
-        "Ireland",
-        "Germany",
-    ],
+    country: Country,
     limit: int | None = None,
 ):
     salaries = get_country_salaries(country, limit)
@@ -52,20 +42,7 @@ def get_country_salaries(
 
 @salaries_router.get("{country}/stats")
 def get__min_max_avg_country_salaries_per_level(
-    country: Literal[
-        "Sweden",
-        "Norway",
-        "France",
-        "Estonia",
-        "United Kingdom",
-        "Netherlands",
-        "Spain",
-        "Austria",
-        "London",
-        "Poland",
-        "Ireland",
-        "Germany",
-    ],
+    country: Country,
     level: Optional[Literal["Senior", "Mid", "Junior"]] = None,
 ):
     tuple_result = find_min_max_avg_country_salaries(country, level)
@@ -97,4 +74,20 @@ def get_most_offerings_per_country_salaries_for_level(
 ):
     tuple_result = find_most_offerings_per_country_salaries_for_level(country, level)
     result = [{listing[0]: listing[1]} for listing in tuple_result]
+    return result
+
+
+@salaries_router.get("{city}/salaries")
+def get_city_salaries(city: City, limit: Optional[int] = None):
+    city_salaries = calculate_city_salaries(city,limit)
+    return city_salaries
+
+@salaries_router.get("/{city}/stats")
+def get_city_min_avg_max_salaries(city:City):
+    city_min_avg_max_salaries = calculate_city_min_avg_max_salaries(city)
+    result = {
+        "Minimum Salary": city_min_avg_max_salaries[0],
+        "Average Salary": city_min_avg_max_salaries[1],
+        "Maximum Salary": city_min_avg_max_salaries[2],
+    }
     return result

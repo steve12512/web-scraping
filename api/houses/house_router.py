@@ -9,6 +9,8 @@ from database.houses.crud_functions import (
     get_city_listings,
 )
 from services.houses.houses_scraping_orchestrator import House_Scraping_Orchestrator
+from api.enums.country import Country
+from api.enums.city import City
 
 house_router = APIRouter(prefix="/houses", tags=["Houses"])
 
@@ -60,15 +62,15 @@ def scrape_houses_and_save_them_to_db(
 
 @house_router.get("/", response_model=List[dict])
 def get_house_listings(db=Depends(get_db), max_listings: Optional[int] = None):
-    listings: List[dict] = get_listings(db)
+    listings: List[dict] = get_listings(db, max_listings)
     return listings
 
 
 @house_router.get("/{country}", response_model=List[dict])
 def get_country_house_listings(
-    country: str, db=Depends(get_db), max_listings: Optional[int] = None
+    country: Country , db=Depends(get_db), max_listings: Optional[int] = None
 ):
-    country_listings = get_country_listings(db, country)
+    country_listings = get_country_listings(db, country, max_listings)
     return country_listings
 
 
