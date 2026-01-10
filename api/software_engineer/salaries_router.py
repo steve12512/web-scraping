@@ -13,17 +13,19 @@ salaries_router = APIRouter(prefix="/salaries", tags=["Salaries"])
 
 
 
-@salaries_router.post('/scrape_salaries', response_model=list_of_places_to_be_scraped)
+@salaries_router.post('/scrape_salaries')
 def scrape_software_engineer_salaries():
-    scraper = Salaries_Scraping_Orchestrator()
-    pass
-# locations_to_scrape = {
-#     "London Area": [
-#         "United Kingdom",
-#         "London",
-#         "https://levels.fyi/t/software-engineer/locations/london-metro-area",
-#         1,
-#     ]
+    locations_to_scrape = {
+    "London Area": [
+        "United Kingdom",
+        "London",
+        "https://levels.fyi/t/software-engineer/locations/london-metro-area",
+        1,
+    ]
+}
+    scraper = Salaries_Scraping_Orchestrator(locations_to_scrape)
+    scraper.run()
+
 
 @salaries_router.get("/get_salaries", response_model=List[Software_Engineer_Salaries])
 def get_salaries(limit: int | None):
