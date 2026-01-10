@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 from dotenv import load_dotenv
-from sqlmodel import Field, SQLModel, Session, create_engine, select
+from sqlmodel import Field, SQLModel, Session, create_engine, desc, select
 import pandas as pd
 from typing import Type
 from database.software_engineer.models import (
@@ -252,13 +252,38 @@ def calculate_city_min_avg_max_salaries(city: str):
     logger.info("Inside the calculate_city_min_avg_max_salaries function")
     try:
         with Session(engine) as session:
-            statement = select(
-                func.min(software_engineer_salaries.salary).label("minimum_salary"),
-                func.avg(software_engineer_salaries.salary).label("average_salary"),
-                func.max(software_engineer_salaries.salary).label("maximum_salary"),
-            ).where(software_engineer_salaries.city == city).group_by(software_engineer_salaries.city)
+            statement = (
+                select(
+                    func.min(software_engineer_salaries.salary).label("minimum_salary"),
+                    func.avg(software_engineer_salaries.salary).label("average_salary"),
+                    func.max(software_engineer_salaries.salary).label("maximum_salary"),
+                )
+                .where(software_engineer_salaries.city == city)
+                .group_by(software_engineer_salaries.city)
+            )
 
             result = session.exec(statement).first()
+            logger.info(f"Successfully ran query. The results are: {result}")
+            return result
+    except Exception as e:
+        logger.error(
+            f"An exception occurred inside calculate_city_min_avg_max_salaries: {e}",
+            exc_info=True,
+        )
+        return None
+
+
+def calculate_cities_ranked_by_their_median_salary():
+    logger.info("Inside the calculate_cities_ranked_by_their_median_salary function")
+    try:
+        with Session(engine) as session:
+            statement = select(
+                func.avg(software_engineer_salaries.salary).label("city_median_salary"),
+                software_engineer_salaries.city,
+                func.count(software_engineer_salaries.salary).label("number_of_listings")
+            ).group_by(software_engineer_salaries.city).order_by(desc("city_median_salary"))
+
+            result = session.exec(statement).mappings().all()
             logger.info(f"Successfully ran query. The results are: {result}")
             return result
     except Exception as e:
