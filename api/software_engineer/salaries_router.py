@@ -4,25 +4,35 @@ from fastapi import APIRouter
 from .salaries_models import *
 from database.software_engineer.crud_functions import *
 from json import dumps
-from services.salaries.salaries_scraping_orchestrator import Salaries_Scraping_Orchestrator
+from services.salaries.salaries_scraping_orchestrator import (
+    Salaries_Scraping_Orchestrator,
+)
 from api.enums.city import City
 from api.enums.country import Country
-
+from api.software_engineer.salaries_models import Locations_to_scrape
 
 salaries_router = APIRouter(prefix="/salaries", tags=["Salaries"])
 
 
-
-@salaries_router.post('/scrape_salaries')
-def scrape_software_engineer_salaries():
+@salaries_router.post("/scrape_salaries")
+def scrape_software_engineer_salaries(payload: Locations_to_scrape):
+    #     locations_to_scrape = {
+    #     "London Area": [
+    #         "United Kingdom",
+    #         "London",
+    #         "https://levels.fyi/t/software-engineer/locations/london-metro-area",
+    #         1,
+    #     ]
+    # }
     locations_to_scrape = {
-    "London Area": [
-        "United Kingdom",
-        "London",
-        "https://levels.fyi/t/software-engineer/locations/london-metro-area",
-        1,
-    ]
-}
+        location.city: [
+            location.country,
+            location.city,
+            location.url,
+            location.max_number_of_listings_to_be_scraped,
+        ]
+        for location in payload.locations
+    }
     scraper = Salaries_Scraping_Orchestrator(locations_to_scrape)
     scraper.run()
 
@@ -81,11 +91,12 @@ def get_most_offerings_per_country_salaries_for_level(
 
 @salaries_router.get("{city}/salaries")
 def get_city_salaries(city: City, limit: Optional[int] = None):
-    city_salaries = calculate_city_salaries(city,limit)
+    city_salaries = calculate_city_salaries(city, limit)
     return city_salaries
 
+
 @salaries_router.get("/{city}/stats")
-def get_city_min_avg_max_salaries(city:City):
+def get_city_min_avg_max_salaries(city: City):
     city_min_avg_max_salaries = calculate_city_min_avg_max_salaries(city)
     result = {
         "Minimum Salary": city_min_avg_max_salaries[0],
@@ -94,13 +105,14 @@ def get_city_min_avg_max_salaries(city:City):
     }
     return result
 
-@salaries_router.get('{city}/ranked_on_median_salary')
+
+@salaries_router.get("{city}/ranked_on_median_salary")
 def get_cities_ranked_by_their_median_salary():
     ranked_cities = calculate_cities_ranked_by_their_median_salary()
     return ranked_cities
 
 
-@salaries_router.get('{city}/ranked_on_number_of_listings')
+@salaries_router.get("{city}/ranked_on_number_of_listings")
 def get_cities_ranked_by_the_highest_number_of_jobs():
     ranked_cities = calculate_cities_cities_ranked_by_the_highest_number_of_jobs()
     return ranked_cities

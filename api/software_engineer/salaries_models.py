@@ -17,7 +17,7 @@ class Locations(BaseModel):
     city: str
     url: str
     max_number_of_listings_to_be_scraped: int
+    save_to_db : bool
 
-
-class list_of_places_to_be_scraped(BaseModel):
-    List[Locations]
+class Locations_to_scrape(BaseModel):
+    locations: List[Locations]
