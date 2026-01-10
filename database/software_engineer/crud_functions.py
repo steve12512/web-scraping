@@ -292,7 +292,25 @@ def calculate_cities_ranked_by_their_median_salary():
             exc_info=True,
         )
         return None
+    
+def calculate_cities_cities_ranked_by_the_highest_number_of_jobs():
+    logger.info("Inside the calculate_cities_ranked_by_their_median_salary function")
+    try:
+        with Session(engine) as session:
+            statement = select(
+                func.count(software_engineer_salaries.salary).label("number_of_listings"),
+                software_engineer_salaries.city,
+            ).group_by(software_engineer_salaries.city).order_by(desc("number_of_listings"))
 
+            result = session.exec(statement).mappings().all()
+            logger.info(f"Successfully ran query. The results are: {result}")
+            return result
+    except Exception as e:
+        logger.error(
+            f"An exception occurred inside calculate_city_min_avg_max_salaries: {e}",
+            exc_info=True,
+        )
+        return None
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

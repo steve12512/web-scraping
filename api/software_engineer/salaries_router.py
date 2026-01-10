@@ -92,7 +92,13 @@ def get_city_min_avg_max_salaries(city:City):
     }
     return result
 
-@salaries_router.get('{city}/ranked')
+@salaries_router.get('{city}/ranked_on_median_salary')
 def get_cities_ranked_by_their_median_salary():
     ranked_cities = calculate_cities_ranked_by_their_median_salary()
+    return ranked_cities
+
+
+@salaries_router.get('{city}/ranked_on_number_of_listings')
+def get_cities_ranked_by_the_highest_number_of_jobs():
+    ranked_cities = calculate_cities_cities_ranked_by_the_highest_number_of_jobs()
     return ranked_cities
