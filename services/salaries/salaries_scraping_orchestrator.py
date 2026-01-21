@@ -20,6 +20,7 @@ class Salaries_Scraping_Orchestrator:
             city = values[1]
             country_url = values[2]
             max_listings_to_be_scraped = values[3]
+            self.save_to_db = values[4]
 
             scraper = Software_Engineer_Scraper(
                 country, city, country_url, max_listings_to_be_scraped

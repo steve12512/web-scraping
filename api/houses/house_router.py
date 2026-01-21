@@ -27,6 +27,18 @@ def scrape_houses_and_save_them_to_db(
     with each container containing 8 listings)
     """
     places_to_be_scraped = {
+        "Berlin": [
+            "Berlin",
+            "Germany",
+            "https://housinganywhere.com/s/Berlin--Germany",
+            "de",
+            max_number_of_listings_to_be_scraped,
+        ],
+        
+        
+        #https://housinganywhere.com/
+        
+        
         "Stockholm": [
             "Stockholm",
             "Sweden",
