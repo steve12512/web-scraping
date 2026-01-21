@@ -30,6 +30,7 @@ def scrape_software_engineer_salaries(payload: Locations_to_scrape):
             location.city,
             location.url,
             location.max_number_of_listings_to_be_scraped,
+            location.save_to_db
         ]
         for location in payload.locations
     }
