@@ -9,11 +9,6 @@ class House_Scraping_Orchestrator:
         self.request = request
 
     def run(self):
-        # for city, values in self.dictionary_of_places_to_scrape.items():
-        #     country = values[1]
-        #     url = values[2]
-        #     word_to_split_listing_id_on_the_url = values[3]
-        #     max_listings_to_be_scraped = values[4]
 
         city = self.request.city
         country = self.request.country
