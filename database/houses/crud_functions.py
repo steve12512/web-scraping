@@ -97,19 +97,19 @@ def get_country_listings(db, country: str, max_listings=None):
 
 
 def get_city_listings(db, city: str, max_listings=None):
-    logger.info("Inside the get country listings function, for country {country}")
+    logger.info("Inside the get country listings function, for city {city}")
     try:
         collection = db["houses"]
         logger.info("Got collection")
         if max_listings is None:
-            country_listings_cursor = collection.find({"country": city})
+            city_listings_cursor = collection.find({"city": city})
         else:
-            country_listings_cursor = collection.find({"country": city}).limit(
+            city_listings_cursor = collection.find({"city": city}).limit(
                 max_listings
             )
-        logger.info(f"Got country listings for country {city}")
-        country_listings = list(country_listings_cursor)
-        serialized_listings = serialize_batch(country_listings)
+        logger.info(f"Got country listings for city {city}")
+        city_listings = list(city_listings_cursor)
+        serialized_listings = serialize_batch(city_listings)
         return serialized_listings
     except Exception as e:
         logger.error(f"An exception occured while trying to get city listings \n {e}")

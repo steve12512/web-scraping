@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Literal, Optional
 from fastapi import APIRouter
 from .house_models import Housing_Listing
 from fastapi import Depends, Query
@@ -78,7 +78,7 @@ def get_house_listings(db=Depends(get_db), max_listings: Optional[int] = None):
     return listings
 
 
-@house_router.get("/{country}", response_model=List[dict])
+@house_router.get("/country/{country}", response_model=List[dict])
 def get_country_house_listings(
     country: Country , db=Depends(get_db), max_listings: Optional[int] = None
 ):
@@ -86,9 +86,9 @@ def get_country_house_listings(
     return country_listings
 
 
-@house_router.get("/{city}", response_model=List[dict])
+@house_router.get("/city", response_model=List[dict])
 def get_city_house_listings(
-    city: str, db=Depends(get_db), max_listings: Optional[int] = None
+    city: Literal["Berlin"], db=Depends(get_db), max_listings: Optional[int] = None
 ):
     city_listings = get_city_listings(db, city)
     return city_listings
