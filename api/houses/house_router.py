@@ -1,6 +1,6 @@
 from typing import List, Literal, Optional
 from fastapi import APIRouter
-from .house_models import Housing_Listing
+from .house_models import Housing_Listing_Request
 from fastapi import Depends, Query
 from database.houses.crud_functions import (
     get_db,
@@ -17,8 +17,7 @@ house_router = APIRouter(prefix="/houses", tags=["Houses"])
 
 @house_router.post("/")
 def scrape_houses_and_save_them_to_db(
-    listing: Housing_Listing,
-    max_number_of_listings_to_be_scraped: int = Query(1000, ge=1, le=1000),
+    request: Housing_Listing_Request,
     db=Depends(get_db),
 ):
     """
@@ -26,49 +25,47 @@ def scrape_houses_and_save_them_to_db(
     of the condition takes place after a page has been scraped(a page contains 2 containers,
     with each container containing 8 listings)
     """
-    places_to_be_scraped = {
-        "Berlin": [
-            "Berlin",
-            "Germany",
-            "https://housinganywhere.com/s/Berlin--Germany",
-            "de",
-            max_number_of_listings_to_be_scraped,
-        ],
-        
-        
-        #https://housinganywhere.com/
-        
-        
-        "Stockholm": [
-            "Stockholm",
-            "Sweden",
-            "https://housinganywhere.com/s/Stockholm--Sweden",
-            "se",
-            max_number_of_listings_to_be_scraped,
-        ],
-        "Barcelona": [
-            "Barcelona",
-            "Spain",
-            "https://housinganywhere.com/s/Barcelona--Spain",
-            "es",
-            max_number_of_listings_to_be_scraped,
-        ],
-        "London": [
-            "London",
-            "UK",
-            "https://housinganywhere.com/s/London--United-Kingdom",
-            "gb",
-            max_number_of_listings_to_be_scraped,
-        ],
-        "Amsterdam": [
-            "Amsterdam",
-            "Netherlands",
-            "https://housinganywhere.com/s/Amsterdam--Netherlands",
-            "nl",
-            max_number_of_listings_to_be_scraped,
-        ],
-    }
-    houses_orchestrator = House_Scraping_Orchestrator(places_to_be_scraped)
+    # places_to_be_scraped = {
+    #     "Berlin": [
+    #         "Berlin",
+    #         "Germany",
+    #         "https://housinganywhere.com/s/Berlin--Germany",
+    #         "de",
+    #         max_number_of_listings_to_be_scraped,
+    #     ],
+
+    #     #https://housinganywhere.com/
+
+    #     "Stockholm": [
+    #         "Stockholm",
+    #         "Sweden",
+    #         "https://housinganywhere.com/s/Stockholm--Sweden",
+    #         "se",
+    #         max_number_of_listings_to_be_scraped,
+    #     ],
+    #     "Barcelona": [
+    #         "Barcelona",
+    #         "Spain",
+    #         "https://housinganywhere.com/s/Barcelona--Spain",
+    #         "es",
+    #         max_number_of_listings_to_be_scraped,
+    #     ],
+    #     "London": [
+    #         "London",
+    #         "UK",
+    #         "https://housinganywhere.com/s/London--United-Kingdom",
+    #         "gb",
+    #         max_number_of_listings_to_be_scraped,
+    #     ],
+    #     "Amsterdam": [
+    #         "Amsterdam",
+    #         "Netherlands",
+    #         "https://housinganywhere.com/s/Amsterdam--Netherlands",
+    #         "nl",
+    #         max_number_of_listings_to_be_scraped,
+    #     ],
+    # }
+    houses_orchestrator = House_Scraping_Orchestrator(request)
     houses_orchestrator.run()
 
 
@@ -80,7 +77,7 @@ def get_house_listings(db=Depends(get_db), max_listings: Optional[int] = None):
 
 @house_router.get("/country/{country}", response_model=List[dict])
 def get_country_house_listings(
-    country: Country , db=Depends(get_db), max_listings: Optional[int] = None
+    country: Country, db=Depends(get_db), max_listings: Optional[int] = None
 ):
     country_listings = get_country_listings(db, country, max_listings)
     return country_listings

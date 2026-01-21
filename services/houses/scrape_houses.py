@@ -199,7 +199,8 @@ class House_Scraper:
     def get_images(self, driver):
         self.logger.info("Inside the get_images function")
         more_photos_button = driver.find_element(
-            By.CLASS_NAME, "css-19d2ht4-tile-tileButton" # new images button: css-19d2ht4-tile-tileButton, old images button: css-13emeri-tile-tileButton
+            By.CLASS_NAME,
+            "css-19d2ht4-tile-tileButton",  # new images button: css-19d2ht4-tile-tileButton, old images button: css-13emeri-tile-tileButton
         )
         more_photos_button.click()
         images = driver.find_elements(By.TAG_NAME, "img")
@@ -489,7 +490,9 @@ class House_Scraper:
             meta_data = dict()
             half_batch = list()
             self.logger.info("Trying to get the container element")
-            container = driver.find_element(By.CLASS_NAME, "css-11dpopy-container") # css-11dpopy-container new attempt, css-wp5dsn-container previous attempt
+            container = driver.find_element(
+                By.CLASS_NAME, "css-11dpopy-container"
+            )  # css-11dpopy-container new attempt, css-wp5dsn-container previous attempt
 
             self.scroll_page(driver)
             self.logger.info("Trying to get the container's listings")

@@ -2,16 +2,9 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-class Housing_Listing(BaseModel):
-    listing_id: str
-    country: str
-    city: str
-    title: Optional[str] = None
-    price: Optional[str] = None
-    description: Optional[str] = None
-    latitude: Optional[str] = None
-    longitude: Optional[str] = None
-    number_of_rooms: Optional[str] = None
-    tags: Optional[List[str]] = None
-    facilities: Optional[List[str]] = None
-    amenities: Optional[List[str]] = None
+class Housing_Listing_Request(BaseModel):
+    city:str
+    country:str 
+    url:str
+    word_to_split_page:str
+    max_number_of_listings_to_be_scraped:int 
